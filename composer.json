@@ -1,0 +1,20 @@
+{
+  "name": "nikoms/phpunit-splitter",
+  "description": "Split unit tests to rule them all!",
+  "minimum-stability": "stable",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Nicolas De Boose",
+      "email": "nikoms@gmail.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Nikoms\\PhpUnitSplitter\\": "src"
+    }
+  },
+  "require": {
+    "phpunit/phpunit": "^4.8"
+  }
+}
