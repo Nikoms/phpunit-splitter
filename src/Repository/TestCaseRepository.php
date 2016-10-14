@@ -65,7 +65,7 @@ class TestCaseRepository
     public function updateTime(TestCase $testCase, $time)
     {
         $this->selectStatement->execute(['id' => $testCase->getId()]);
-        $isTestStored = (bool) $this->selectStatement->fetch();
+        $isTestStored = (bool)$this->selectStatement->fetch();
         if (!$isTestStored) {
             echo 'insert : '.$testCase->getId().PHP_EOL;
             $this->insert($testCase, $time);
