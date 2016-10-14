@@ -35,6 +35,7 @@ class TestCaseRepository
                 \PDO::ATTR_ERRMODE,
                 \PDO::ERRMODE_EXCEPTION
             );
+            $this->pdo->setAttribute(\PDO::ATTR_TIMEOUT, 100);
 
             $this->pdo->query(
                 'CREATE TABLE IF NOT EXISTS tests ( 
