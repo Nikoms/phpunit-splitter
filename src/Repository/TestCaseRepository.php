@@ -64,7 +64,6 @@ class TestCaseRepository
      */
     public function updateTime(TestCase $testCase, $time)
     {
-        $this->selectStatement = $this->pdo->prepare('SELECT id FROM tests WHERE id = :id LIMIT 0,1');
         $this->selectStatement->execute(['id' => $testCase->getId()]);
         $isTestStored = (bool) $this->selectStatement->fetch();
         if (!$isTestStored) {
