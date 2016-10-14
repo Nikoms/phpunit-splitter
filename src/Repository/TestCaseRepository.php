@@ -35,7 +35,6 @@ class TestCaseRepository
                 \PDO::ATTR_ERRMODE,
                 \PDO::ERRMODE_EXCEPTION
             );
-            $this->pdo->setAttribute(\PDO::ATTR_TIMEOUT, 100);
 
             $this->pdo->query(
                 'CREATE TABLE IF NOT EXISTS tests ( 
@@ -65,10 +64,14 @@ class TestCaseRepository
      */
     public function updateTime(TestCase $testCase, $time)
     {
+        $this->selectStatement = $this->pdo->prepare('SELECT id FROM tests WHERE id = :id LIMIT 0,1');
         $this->selectStatement->execute(['id' => $testCase->getId()]);
-        if ($this->selectStatement->rowCount() === 0) {
+        $isTestStored = (bool) $this->selectStatement->fetch();
+        if (!$isTestStored) {
+            echo 'insert : '.$testCase->getId().PHP_EOL;
             $this->insert($testCase, $time);
         } else {
+            echo 'update : '.$testCase->getId().PHP_EOL;
             $this->update($testCase, $time);
         }
     }
@@ -79,15 +82,12 @@ class TestCaseRepository
      */
     public function insert(TestCase $testCase, $time)
     {
-        $this->selectStatement->execute(['id' => $testCase->getId()]);
-        if ($this->selectStatement->rowCount() === 0) {
-            $this->insertStatement->execute(
-                [
-                    'id' => $testCase->getId(),
-                    'average' => $time,
-                ]
-            );
-        }
+        $this->insertStatement->execute(
+            [
+                'id' => $testCase->getId(),
+                'average' => $time,
+            ]
+        );
     }
 
     /**
