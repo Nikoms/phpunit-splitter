@@ -8,6 +8,9 @@ use PHPUnit_Framework_TestSuite;
 
 class SplitListener extends \PHPUnit_Framework_BaseTestListener
 {
+    const MODE_CLEAN_DELETED_TESTS = 1; //Remove tests that does not exist anymore
+    const MODE_ADD_NEW_TESTS = 2; //Add new tests
+    const MODE_SHOW_GROUPS = 4; //Display groups (to make the grep)
     /**
      * @var \SplObjectStorage | TestCase[]
      */
@@ -23,10 +26,37 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
      */
     private $suiteDeepLevel = 0;
 
+    /**
+     * @var string
+     */
+    private $mode;
+
     public function __construct()
     {
         $this->testCaseRepository = new TestCaseRepository();
         $this->chronos = new \SplObjectStorage();
+        $options = getopt(
+            'd:'
+        );
+        if (isset($options['d'])) {
+            $options['d'] = (array) $options['d'];
+            foreach ($options['d'] as $option) {
+                list($key, $value) = explode('=', $option);
+                echo $key;
+                if ($key === 'split-mode') {
+                    $this->mode = (int)$value;
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * @return int
+     */
+    private function isViewMode()
+    {
+        return (bool) ($this->mode & self::MODE_SHOW_GROUPS);
     }
 
     public function endTest(PHPUnit_Framework_Test $test, $time)
@@ -64,9 +94,7 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
     {
         $this->suiteDeepLevel++;
 
-        //TODO: This must come from the command line :)
-        $onlySee = true;
-        if ($onlySee) {
+        if ($this->isViewMode()) {
             $testCases = $this->getSuiteTestCases($suite);
             foreach ($testCases as $testCase) {
                 echo 'test: '.$testCase->getId().PHP_EOL;
