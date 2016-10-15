@@ -35,6 +35,7 @@ class TestCaseRepository
                 \PDO::ATTR_ERRMODE,
                 \PDO::ERRMODE_EXCEPTION
             );
+            $this->pdo->query('PRAGMA busy_timeout = 15000');
 
             $this->pdo->query(
                 'CREATE TABLE IF NOT EXISTS tests ( 
@@ -67,10 +68,8 @@ class TestCaseRepository
         $this->selectStatement->execute(['id' => $testCase->getId()]);
         $isTestStored = (bool)$this->selectStatement->fetch();
         if (!$isTestStored) {
-            echo 'insert : '.$testCase->getId().PHP_EOL;
             $this->insert($testCase, $time);
         } else {
-            echo 'update : '.$testCase->getId().PHP_EOL;
             $this->update($testCase, $time);
         }
     }
