@@ -8,7 +8,12 @@ for i in `./vendor/bin/phpunit --list-groups | grep "^ -" | awk {'print $2'}`; d
 
 ## Making groups
 ```
-./vendor/bin/phpunit -d split-mode=4 -d split-jobs=
+./vendor/bin/phpunit -d split-jobs=5
+```
+
+## Running group
+```
+./vendor/bin/phpunit -d split-running-group=0
 ```
 
 ## Split modes (temporary)

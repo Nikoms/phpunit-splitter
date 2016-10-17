@@ -1,6 +1,7 @@
 <?php
 namespace Nikoms\PhpUnitSplitter\Listener;
 
+use Nikoms\PhpUnitSplitter\Repository\GroupedTestCaseRepository;
 use Nikoms\PhpUnitSplitter\TestCase\TestCase;
 use Nikoms\PhpUnitSplitter\Repository\TestCaseRepository;
 use PHPUnit_Framework_Test;
@@ -8,9 +9,6 @@ use PHPUnit_Framework_TestSuite;
 
 class SplitListener extends \PHPUnit_Framework_BaseTestListener
 {
-    const MODE_CLEAN_DELETED_TESTS = 1; //Remove tests that does not exist anymore
-    const MODE_ADD_NEW_TESTS = 2; //Add new tests
-    const MODE_INIT_GROUPS = 4; //Init groups before testing in parallel
     /**
      * @var \SplObjectStorage | TestCase[]
      */
@@ -29,12 +27,12 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
     /**
      * @var int
      */
-    private $mode;
+    private $jobs;
 
     /**
      * @var int
      */
-    private $jobs = 1;
+    private $runningGroup;
 
     public function __construct()
     {
@@ -47,25 +45,17 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
             $options['d'] = (array)$options['d'];
             foreach ($options['d'] as $option) {
                 list($key, $value) = explode('=', $option);
-                if ($key === 'split-mode') {
-                    $this->mode = (int)$value;
-                    continue;
-                }
                 if ($key === 'split-jobs') {
                     $this->jobs = (int)$value;
                     continue;
                 }
 
+                if ($key === 'split-running-group') {
+                    $this->runningGroup = (int)$value;
+                    continue;
+                }
             }
         }
-    }
-
-    /**
-     * @return int
-     */
-    private function isInitMode()
-    {
-        return (bool)($this->mode & self::MODE_INIT_GROUPS);
     }
 
     public function endTest(PHPUnit_Framework_Test $test, $time)
@@ -104,20 +94,55 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
     {
         $this->suiteDeepLevel++;
 
-        $groups = array_fill(1, $this->jobs, ['tests' => [], 'totalAverages' => 0]);
+        if ($this->jobs > 0) {
+            $groups = array_fill(
+                1,
+                $this->jobs,
+                ['tests' => [], 'totalAverages' => 0, 'filter' => '^EmptyFilter\Class::function$']
+            );
 
-        if ($this->isInitMode()) {
             $testCases = $this->getSuiteTestCases($suite);
             $chronos = $this->testCaseRepository->getAllChronos();
             foreach ($testCases as $testCase) {
                 $groups = $this->putInBestGroup($groups, $chronos, $testCase);
             }
+
+            foreach ($groups as $id => $group) {
+                $numberOfTests = count($group['tests']);
+                echo '> Group '.$id.' : '.$group['totalAverages'].' ('.$numberOfTests.' tests)'.PHP_EOL;
+                $groupRepository = new GroupedTestCaseRepository($id);
+                $groupRepository->createDatabase($group['filter'], $numberOfTests);
+                $groupRepository->close();
+            }
+
             $this->doNotRunTests($suite);
+
+            return;
         }
 
-        foreach($groups as $id => $group){
-            echo '> Group '.$id.' : '.$group['totalAverages'].' ('.count($group['tests']).' tests)'.PHP_EOL;
+        if ($this->runningGroup !== null) {
+            $groupRepository = new GroupedTestCaseRepository($this->runningGroup);
+
+            //ERROR: This create a too big regex: preg_match(): Compilation failed: regular expression is too large at offset
+            $filterFactory = new \PHPUnit_Runner_Filter_Factory();
+            $filterFactory->addFilter(
+                new \ReflectionClass('PHPUnit_Runner_Filter_Test'),
+                $groupRepository->getFilter()
+            );
+            $suite->injectFilter($filterFactory);
+
+            //Maybe this is another kind of doing it... (it does not work but it's an idea)
+
+//            $filters = explode('|', $groupRepository->getFilter());
+//            foreach ($filters as $filter) {
+//                $filterFactory->addFilter(
+//                    new \ReflectionClass('PHPUnit_Runner_Filter_Test'),
+//                    $filter
+//                );
+//            }
+
         }
+
     }
 
     /**
@@ -133,7 +158,8 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
 
         $average = isset($chronos[$testCase->getId()]) ? $chronos[$testCase->getId()]['average'] : 0;
         $groups[0]['tests'][] = $testCase;
-        $groups[0]['totalAverages']+= $average;
+        $groups[0]['totalAverages'] += $average;
+        $groups[0]['filter'] .= '|'.$testCase->getFilter('#');
 
         return $groups;
     }
