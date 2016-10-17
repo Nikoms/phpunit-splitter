@@ -6,6 +6,17 @@ for i in `./vendor/bin/phpunit --list-groups | grep "^ -" | awk {'print $2'}`; d
 
 ```
 
+## Making groups
+```
+./vendor/bin/phpunit -d split-mode=4 -d split-jobs=
+```
+
+## Split modes (temporary)
+
+* 1: Remove tests that does not exist anymore
+* 2: Add new tests
+* 4: Init groups before testing in parallel
+
 ## How does it work?
 * Issue: Sometimes the sqlite is still in lock mode. So we have to create a tmp table (another sqlite file)
 * Split equally depending on the number of jobs and create fake groups

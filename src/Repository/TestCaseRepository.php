@@ -97,6 +97,14 @@ class TestCaseRepository
     }
 
     /**
+     * @return array
+     */
+    public function getAllChronos()
+    {
+        return $this->pdo->query('SELECT id, average FROM tests')->fetchAll(\PDO::FETCH_GROUP|\PDO::FETCH_UNIQUE);
+    }
+
+    /**
      *
      */
     public function commit()
