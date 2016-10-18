@@ -21,14 +21,8 @@ for i in `./vendor/bin/phpunit --list-groups | grep "^ -" | awk {'print $2'}`; d
 ./vendor/bin/phpunit -d split-gathering-data=5
 ```
 
-## Split modes (temporary)
-
-* 1: Remove tests that does not exist anymore
-* 2: Add new tests
-* 4: Init groups before testing in parallel
 
 ## How does it work?
-* Issue: Sometimes the sqlite is still in lock mode. So we have to create a tmp table (another sqlite file)
 * Split equally depending on the number of jobs and create fake groups
 * Pass this fake group to the loop (with a grep maybe)
 * Run tests that only have this fake group
