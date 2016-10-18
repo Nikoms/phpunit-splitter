@@ -38,24 +38,18 @@ class GroupedTestCaseRepository
     }
 
     /**
-     * @param string $bigFilter
-     * @param int    $numberOfTests
+     *
      */
-    public function createDatabase($bigFilter, $numberOfTests)
+    public function resetDatabase()
     {
+        $this->pdo->query('DROP TABLE tests');
         $this->pdo->query(
-            'CREATE TABLE IF NOT EXISTS tests ( 
+            'CREATE TABLE tests ( 
     id                VARCHAR( 1000 ),
-    currentTime       int
+    executionTime       int
 );'
         );
-        $this->pdo->query(
-            'CREATE TABLE IF NOT EXISTS tests_stats (filter TEXT, number_of_tests int);'
-        );
-        $insertStats = $this->pdo->prepare(
-            'INSERT INTO tests_stats (filter, number_of_tests) VALUES (:filter, :number_of_tests)'
-        );
-        $insertStats->execute(['filter' => $bigFilter, 'number_of_tests' => $numberOfTests]);
+        $this->pdo->query('CREATE INDEX IF NOT EXISTS test_idx ON tests(id);');
     }
 
     /**
@@ -68,24 +62,25 @@ class GroupedTestCaseRepository
     {
         if ($this->insertStatement === null) {
             $this->insertStatement = $this->pdo->prepare(
-                'INSERT INTO tests (id, currentTime) VALUES (:id, :time)'
+                'INSERT INTO tests (id, executionTime) VALUES (:id, :executionTime)'
             );
         }
 
-        return $this->insertStatement->execute(['id' => $id, 'currentTime' => $time]);
+        return $this->insertStatement->execute(['id' => $id, 'executionTime' => $time]);
     }
 
     /**
-     * @return string
+     * @param string $id
+     * @param int    $time
+     *
+     * @return bool
      */
-    public function getFilter()
+    public function updateTime($id, $time)
     {
-        $result = $this->pdo->query('SELECT * FROM tests_stats')->fetch();
-        if (!$result) {
-            return '^Empty::Class\function';
-        }
-
-        return $result['filter'];
+        return $this
+            ->pdo
+            ->prepare('UPDATE tests set executionTime = :executionTime WHERE id = :id')
+            ->execute(['id' => $id, 'executionTime' => $time]);
     }
 
     /**
@@ -110,5 +105,21 @@ class GroupedTestCaseRepository
     public function close()
     {
         $this->pdo = null;
+    }
+
+    /**
+     * @return array
+     */
+    public function getTestIds()
+    {
+        return array_column($this->pdo->query('select id from tests')->fetchAll(), 'id');
+    }
+
+    /**
+     * @return array
+     */
+    public function getTimes()
+    {
+        return $this->pdo->query('select id, executionTime from tests')->fetchAll(\PDO::FETCH_UNIQUE|\PDO::FETCH_GROUP);
     }
 }

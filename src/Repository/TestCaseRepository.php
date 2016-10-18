@@ -2,8 +2,6 @@
 
 namespace Nikoms\PhpUnitSplitter\Repository;
 
-use Nikoms\PhpUnitSplitter\TestCase\TestCase;
-
 class TestCaseRepository
 {
     /**
@@ -48,7 +46,7 @@ class TestCaseRepository
 
             $this->selectStatement = $this->pdo->prepare('SELECT * FROM tests WHERE id = :id');
             $this->insertStatement = $this->pdo->prepare(
-                'INSERT INTO tests (id, average, runs) VALUES (:id, :average, 1)'
+                'INSERT INTO tests (id, average, runs) VALUES (:id, :average, 0)'
             );
             $this->updateStatement = $this->pdo->prepare(
                 'UPDATE tests set average = ((average*runs)+:newTime)/(runs+1), runs = runs+1 where id = :id'
@@ -60,29 +58,42 @@ class TestCaseRepository
     }
 
     /**
-     * @param TestCase $testCase
-     * @param int      $time
+     * @param string $id
+     * @param int    $time
+     *
+     * @return bool
      */
-    public function updateTime(TestCase $testCase, $time)
+    public function updateTime($id, $time)
     {
-        $this->selectStatement->execute(['id' => $testCase->getId()]);
-        $isTestStored = (bool)$this->selectStatement->fetch();
-        if (!$isTestStored) {
-            $this->insert($testCase, $time);
-        } else {
-            $this->update($testCase, $time);
+        return $this->updateStatement->execute(
+            [
+                'id' => $id,
+                'newTime' => $time,
+            ]
+        );
+    }
+
+    /**
+     * @param int $id
+     */
+    public function assureTestIsStored($id)
+    {
+        $this->selectStatement->execute(['id' => $id]);
+        $found = $this->selectStatement->fetchAll();
+        if (empty($found)) {
+            $this->insert($id, 0);
         }
     }
 
     /**
-     * @param TestCase $testCase
-     * @param int      $time
+     * @param     $id
+     * @param int $time
      */
-    public function insert(TestCase $testCase, $time)
+    public function insert($id, $time)
     {
         $this->insertStatement->execute(
             [
-                'id' => $testCase->getId(),
+                'id' => $id,
                 'average' => $time,
             ]
         );
@@ -101,7 +112,7 @@ class TestCaseRepository
      */
     public function getAllChronos()
     {
-        return $this->pdo->query('SELECT id, average FROM tests')->fetchAll(\PDO::FETCH_GROUP|\PDO::FETCH_UNIQUE);
+        return $this->pdo->query('SELECT id, average FROM tests')->fetchAll(\PDO::FETCH_GROUP | \PDO::FETCH_UNIQUE);
     }
 
     /**
@@ -110,19 +121,5 @@ class TestCaseRepository
     public function commit()
     {
         $this->pdo->commit();
-    }
-
-    /**
-     * @param TestCase $testCase
-     * @param int      $time
-     */
-    private function update(TestCase $testCase, $time)
-    {
-        $this->updateStatement->execute(
-            [
-                'id' => $testCase->getId(),
-                'newTime' => $time,
-            ]
-        );
     }
 }

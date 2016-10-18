@@ -16,6 +16,11 @@ for i in `./vendor/bin/phpunit --list-groups | grep "^ -" | awk {'print $2'}`; d
 ./vendor/bin/phpunit -d split-running-group=0
 ```
 
+## Gathering data
+```
+./vendor/bin/phpunit -d split-gathering-data=5
+```
+
 ## Split modes (temporary)
 
 * 1: Remove tests that does not exist anymore

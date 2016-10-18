@@ -27,12 +27,17 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
     /**
      * @var int
      */
-    private $jobs;
+    private $splitInJobs;
 
     /**
      * @var int
      */
     private $runningGroup;
+
+    /**
+     * @var int
+     */
+    private $gatheringData;
 
     public function __construct()
     {
@@ -46,12 +51,17 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
             foreach ($options['d'] as $option) {
                 list($key, $value) = explode('=', $option);
                 if ($key === 'split-jobs') {
-                    $this->jobs = (int)$value;
+                    $this->splitInJobs = (int)$value;
                     continue;
                 }
 
                 if ($key === 'split-running-group') {
                     $this->runningGroup = (int)$value;
+                    continue;
+                }
+
+                if ($key === 'split-gathering-data') {
+                    $this->gatheringData = (int)$value;
                     continue;
                 }
             }
@@ -76,14 +86,12 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
     private function getSuiteTestCases(PHPUnit_Framework_TestSuite $suite)
     {
         $testCases = [];
-        foreach ($suite->getGroupDetails() as $groupSuites) {
-            foreach ($groupSuites as $k => $test) {
-                if ($test instanceof PHPUnit_Framework_TestSuite) {
-                    $testCases = array_merge($testCases, $this->getSuiteTestCases($test));
-                } else {
-                    $testCase = new TestCase($test);
-                    $testCases[$testCase->getId()] = $testCase;
-                }
+        foreach ($suite->tests() as $test) {
+            if ($test instanceof PHPUnit_Framework_TestSuite) {
+                $testCases = array_merge($testCases, $this->getSuiteTestCases($test));
+            } else {
+                $testCase = new TestCase($test);
+                $testCases[$testCase->getId()] = $testCase;
             }
         }
 
@@ -93,27 +101,42 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
     public function startTestSuite(PHPUnit_Framework_TestSuite $suite)
     {
         $this->suiteDeepLevel++;
+        if ($this->gatheringData) {
+            $this->doNotRunTests($suite);
 
-        if ($this->jobs > 0) {
+            return;
+        }
+        $testCases = $this->getSuiteTestCases($suite);
+
+        if ($this->splitInJobs > 0) {
             $groups = array_fill(
-                1,
-                $this->jobs,
+                0,
+                $this->splitInJobs,
                 ['tests' => [], 'totalAverages' => 0, 'filter' => '^EmptyFilter\Class::function$']
             );
 
-            $testCases = $this->getSuiteTestCases($suite);
             $chronos = $this->testCaseRepository->getAllChronos();
+            //TODO: Optimize this loop (takes 700 ms for 10.000)
             foreach ($testCases as $testCase) {
                 $groups = $this->putInBestGroup($groups, $chronos, $testCase);
             }
 
+            //TODO: Optimize This loop (takes 600 ms for 10.000)
+            $this->testCaseRepository->beginTransaction();
             foreach ($groups as $id => $group) {
                 $numberOfTests = count($group['tests']);
                 echo '> Group '.$id.' : '.$group['totalAverages'].' ('.$numberOfTests.' tests)'.PHP_EOL;
                 $groupRepository = new GroupedTestCaseRepository($id);
-                $groupRepository->createDatabase($group['filter'], $numberOfTests);
+                $groupRepository->resetDatabase();
+                $groupRepository->beginTransaction();
+                foreach ($group['tests'] as $testCase) {
+                    $this->testCaseRepository->assureTestIsStored($testCase->getId());
+                    $groupRepository->insert($testCase->getId(), 0);
+                }
+                $groupRepository->commit();
                 $groupRepository->close();
             }
+            $this->testCaseRepository->commit();
 
             $this->doNotRunTests($suite);
 
@@ -122,25 +145,24 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
 
         if ($this->runningGroup !== null) {
             $groupRepository = new GroupedTestCaseRepository($this->runningGroup);
+            $testIds = $groupRepository->getTestIds();
+            $groupRepository->close();
 
-            //ERROR: This create a too big regex: preg_match(): Compilation failed: regular expression is too large at offset
-            $filterFactory = new \PHPUnit_Runner_Filter_Factory();
-            $filterFactory->addFilter(
-                new \ReflectionClass('PHPUnit_Runner_Filter_Test'),
-                $groupRepository->getFilter()
+            $filteredTest = array_filter(
+                $testCases,
+                function (TestCase $testCase) use ($testIds) {
+                    return in_array($testCase->getId(), $testIds);
+                }
             );
-            $suite->injectFilter($filterFactory);
+            $filteredPhpUnitTestCases = array_map(
+                function (TestCase $testCase) {
+                    return $testCase->getTestCase();
+                },
+                $filteredTest,
+                [] //This will put the key as auto-inc numeric
+            );
 
-            //Maybe this is another kind of doing it... (it does not work but it's an idea)
-
-//            $filters = explode('|', $groupRepository->getFilter());
-//            foreach ($filters as $filter) {
-//                $filterFactory->addFilter(
-//                    new \ReflectionClass('PHPUnit_Runner_Filter_Test'),
-//                    $filter
-//                );
-//            }
-
+            $suite->setTests($filteredPhpUnitTestCases);
         }
 
     }
@@ -159,7 +181,6 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
         $average = isset($chronos[$testCase->getId()]) ? $chronos[$testCase->getId()]['average'] : 0;
         $groups[0]['tests'][] = $testCase;
         $groups[0]['totalAverages'] += $average;
-        $groups[0]['filter'] .= '|'.$testCase->getFilter('#');
 
         return $groups;
     }
@@ -168,8 +189,22 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
     {
         $this->suiteDeepLevel--;
 
-        if ($this->suiteDeepLevel === 0) {
-            $this->updateAverages();
+        if ($this->runningGroup !== null && $this->suiteDeepLevel === 0) {
+            $this->updateTimes();
+        }
+        if ($this->gatheringData) {
+            $testCaseRepository = new TestCaseRepository();
+            $testCaseRepository->beginTransaction();
+            for ($i = 0; $i < $this->gatheringData; $i++) {
+                $repo = new GroupedTestCaseRepository($i);
+                $times = $repo->getTimes();
+                echo sprintf('Gathering %s tests from group %s'.PHP_EOL, count($times), $i);
+                foreach ($times as $id => $test) {
+                    $testCaseRepository->updateTime($id, $test['executionTime']);
+                }
+                $repo->resetDatabase();
+            }
+            $testCaseRepository->commit();
         }
     }
 
@@ -178,23 +213,22 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
      */
     private function doNotRunTests(PHPUnit_Framework_TestSuite $suite)
     {
-        $filterFactory = new \PHPUnit_Runner_Filter_Factory();
-        //This filter will remove all tests to be executed
-        $filterFactory->addFilter(
-            new \ReflectionClass('PHPUnit_Runner_Filter_Test'),
-            'EmptyFilter\Class::function'
-        );
-        $suite->injectFilter($filterFactory);
+        $suite->setTests([]);
     }
 
-    private function updateAverages()
+    /**
+     *
+     */
+    private function updateTimes()
     {
-        $this->testCaseRepository->beginTransaction();
+        $groupRepository = new GroupedTestCaseRepository($this->runningGroup);
+        $groupRepository->beginTransaction();
         foreach ($this->chronos as $testCase) {
             $time = $this->chronos[$testCase];
-            $this->testCaseRepository->updateTime($testCase, $time);
+            $groupRepository->updateTime($testCase->getId(), $time);
         }
-        $this->testCaseRepository->commit();
+        $groupRepository->commit();
+        $groupRepository->close();
     }
 
     /**

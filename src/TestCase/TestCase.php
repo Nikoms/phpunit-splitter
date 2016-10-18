@@ -22,6 +22,10 @@ class TestCase
      * @var string
      */
     private $dataName;
+    /**
+     * @var \PHPUnit_Framework_TestCase
+     */
+    private $testCase;
 
     /**
      * TestCase constructor.
@@ -35,8 +39,16 @@ class TestCase
         $this->method = $testCase->getName(false);
         $this->dataName = $this->extractDataName($testCase);
         $this->id = $this->className.'::'.$testCase->getName(true);
+        $this->testCase = $testCase;
     }
 
+    /**
+     * @return \PHPUnit_Framework_TestCase
+     */
+    public function getTestCase()
+    {
+        return $this->testCase;
+    }
 
     /**
      * @param \PHPUnit_Framework_TestCase $testCase
