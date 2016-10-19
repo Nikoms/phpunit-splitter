@@ -38,7 +38,6 @@ for i in {0..4}; do echo $i; done | time parallel docker run -d -v "$PWD":/var/r
 * 4: Init groups before testing in parallel
 
 ## How does it work?
-* Issue: Sometimes the sqlite is still in lock mode. So we have to create a tmp table (another sqlite file)
 * Split equally depending on the number of jobs and create fake groups
 * Pass this fake group to the loop (with a grep maybe)
 * Run tests that only have this fake group
