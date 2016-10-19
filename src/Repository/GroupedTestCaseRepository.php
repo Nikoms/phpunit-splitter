@@ -42,7 +42,7 @@ class GroupedTestCaseRepository
      */
     public function resetDatabase()
     {
-        $this->pdo->query('DROP TABLE tests');
+        $this->pdo->query('DROP TABLE IF EXISTS tests');
         $this->pdo->query(
             'CREATE TABLE tests ( 
     id                VARCHAR( 1000 ),
