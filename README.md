@@ -37,4 +37,3 @@ for i in `./vendor/bin/phpunit --list-groups | grep "^ -" | awk {'print $2'}`; d
 ## TODO
 * unit test
 * CI
-* Making the "--filter" work for the first step (split-jobs)

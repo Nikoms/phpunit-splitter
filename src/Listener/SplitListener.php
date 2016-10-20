@@ -86,7 +86,7 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
     private function getSuiteTestCases(PHPUnit_Framework_TestSuite $suite)
     {
         $testCases = [];
-        foreach ($suite->tests() as $test) {
+        foreach ($suite as $test) {
             if ($test instanceof PHPUnit_Framework_TestSuite) {
                 $testCases = array_merge($testCases, $this->getSuiteTestCases($test));
             } else {

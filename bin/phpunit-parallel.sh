@@ -15,10 +15,10 @@ done
 
 
 echo "Splitting in $jobs jobs ($phpunitArgs)";
-./vendor/bin/phpunit -d split-jobs=$jobs;
+./vendor/bin/phpunit -d split-jobs=$jobs $phpunitArgs;
 
 for (( i=0; i<$jobs; i++ ))
 do
     echo "$i $phpunitArgs"; done | parallel --colsep=' ' ./vendor/bin/phpunit -d split-running-group={};
 
-./vendor/bin/phpunit -d split-gathering-data=$jobs;
+./vendor/bin/phpunit -d split-gathering-data=$jobs $phpunitArgs;
