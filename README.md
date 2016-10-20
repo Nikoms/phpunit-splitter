@@ -32,4 +32,9 @@ for i in `./vendor/bin/phpunit --list-groups | grep "^ -" | awk {'print $2'}`; d
 * Parallel loop over jobs
 * Run tests that only have this fake group
 * When all tests are over get the new timers, recalculate all averages, delete tmp sqlite files
- 
+
+
+## TODO
+* unit test
+* CI
+* Making the "--filter" work for the first step (split-jobs)
