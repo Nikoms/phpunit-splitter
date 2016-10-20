@@ -7,6 +7,11 @@ namespace Nikoms\PhpUnitSplitter\Repository;
 class GroupedTestCaseRepository
 {
     /**
+     * @var string
+     */
+    private $pathname;
+
+    /**
      * @var int
      */
     private $groupId;
@@ -24,8 +29,9 @@ class GroupedTestCaseRepository
     public function __construct($groupId)
     {
         $this->groupId = $groupId;
+        $this->pathname = __DIR__.'/phpunit-split-'.$this->groupId.'.sqlite';
         try {
-            $this->pdo = new \PDO('sqlite:'.__DIR__.'/phpunit-split-'.$this->groupId.'.sqlite');
+            $this->pdo = new \PDO('sqlite:'.$this->pathname);
             $this->pdo->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
             $this->pdo->setAttribute(
                 \PDO::ATTR_ERRMODE,
@@ -38,18 +44,19 @@ class GroupedTestCaseRepository
     }
 
     /**
-     *
+     * @return $this
      */
     public function resetDatabase()
     {
-        $this->pdo->query('DROP TABLE IF EXISTS tests');
         $this->pdo->query(
-            'CREATE TABLE tests ( 
+            'CREATE TABLE IF NOT EXISTS tests ( 
     id                VARCHAR( 1000 ),
     executionTime       int
 );'
         );
         $this->pdo->query('CREATE INDEX IF NOT EXISTS test_idx ON tests(id);');
+
+        return $this;
     }
 
     /**
@@ -100,11 +107,23 @@ class GroupedTestCaseRepository
     }
 
     /**
-     *
+     * @return $this
      */
     public function close()
     {
         $this->pdo = null;
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function drop()
+    {
+        unlink($this->pathname);
+
+        return $this;
     }
 
     /**

@@ -202,7 +202,7 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
                 foreach ($times as $id => $test) {
                     $testCaseRepository->updateTime($id, $test['executionTime']);
                 }
-                $repo->resetDatabase();
+                $repo->resetDatabase()->drop();
             }
             $testCaseRepository->commit();
         }
