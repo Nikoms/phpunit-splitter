@@ -2,13 +2,16 @@
 namespace Nikoms\PhpUnitSplitter\Listener;
 
 use Nikoms\PhpUnitSplitter\Repository\GroupedTestCaseRepository;
+use Nikoms\PhpUnitSplitter\TestCase\SplitStep;
 use Nikoms\PhpUnitSplitter\TestCase\TestCase;
 use Nikoms\PhpUnitSplitter\Repository\TestCaseRepository;
+use Nikoms\PhpUnitSplitter\TestCase\Token;
 use PHPUnit_Framework_Test;
 use PHPUnit_Framework_TestSuite;
 
 class SplitListener extends \PHPUnit_Framework_BaseTestListener
 {
+    const TIME_PRECISION = 1000000;
     /**
      * @var \SplObjectStorage | TestCase[]
      */
@@ -24,48 +27,10 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
      */
     private $suiteDeepLevel = 0;
 
-    /**
-     * @var int
-     */
-    private $splitInJobs;
-
-    /**
-     * @var int
-     */
-    private $runningGroup;
-
-    /**
-     * @var int
-     */
-    private $gatheringData;
-
     public function __construct()
     {
         $this->testCaseRepository = new TestCaseRepository();
         $this->chronos = new \SplObjectStorage();
-        $options = getopt(
-            'd:'
-        );
-        if (isset($options['d'])) {
-            $options['d'] = (array)$options['d'];
-            foreach ($options['d'] as $option) {
-                list($key, $value) = explode('=', $option);
-                if ($key === 'split-jobs') {
-                    $this->splitInJobs = (int)$value;
-                    continue;
-                }
-
-                if ($key === 'split-running-group') {
-                    $this->runningGroup = (int)$value;
-                    continue;
-                }
-
-                if ($key === 'split-gathering-data') {
-                    $this->gatheringData = (int)$value;
-                    continue;
-                }
-            }
-        }
     }
 
     public function endTest(PHPUnit_Framework_Test $test, $time)
@@ -75,7 +40,7 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
         }
 
         $testCase = new TestCase($test);
-        $this->chronos->attach($testCase, round($time * 1000000));
+        $this->chronos->attach($testCase, round($time * self::TIME_PRECISION));
     }
 
     /**
@@ -101,17 +66,18 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
     public function startTestSuite(PHPUnit_Framework_TestSuite $suite)
     {
         $this->suiteDeepLevel++;
-        if ($this->gatheringData) {
+        if (SplitStep::isGathering()) {
             $this->doNotRunTests($suite);
 
             return;
         }
         $testCases = $this->getSuiteTestCases($suite);
 
-        if ($this->splitInJobs > 0) {
+        if (SplitStep::isSplitting()) {
+            $splitInJobs = SplitStep::getValue();
             $groups = array_fill(
                 0,
-                $this->splitInJobs,
+                $splitInJobs,
                 ['tests' => [], 'totalAverages' => 0, 'filter' => '^EmptyFilter\Class::function$']
             );
 
@@ -125,7 +91,10 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
             $this->testCaseRepository->beginTransaction();
             foreach ($groups as $id => $group) {
                 $numberOfTests = count($group['tests']);
-                echo '> Group '.$id.' : '.$group['totalAverages'].' ('.$numberOfTests.' tests)'.PHP_EOL;
+                echo '> Group '.$id.' : '.$numberOfTests.' tests (Estimated time: '.round(
+                        $group['totalAverages'] / self::TIME_PRECISION,
+                        2
+                    ).' sec)'.PHP_EOL;
                 $groupRepository = new GroupedTestCaseRepository($id);
                 $groupRepository->resetDatabase();
                 $groupRepository->beginTransaction();
@@ -143,8 +112,8 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
             return;
         }
 
-        if ($this->runningGroup !== null) {
-            $groupRepository = new GroupedTestCaseRepository($this->runningGroup);
+        if (SplitStep::isRunning()) {
+            $groupRepository = new GroupedTestCaseRepository(SplitStep::getValue());
             $testIds = $groupRepository->getTestIds();
             $groupRepository->close();
 
@@ -189,13 +158,14 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
     {
         $this->suiteDeepLevel--;
 
-        if ($this->runningGroup !== null && $this->suiteDeepLevel === 0) {
-            $this->updateTimes();
+        if (SplitStep::isRunning() && $this->suiteDeepLevel === 0) {
+            $this->updateExecutionTimes(SplitStep::getValue());
         }
-        if ($this->gatheringData) {
+        if (SplitStep::isGathering()) {
+            $numberOfJobs = SplitStep::getValue();
             $testCaseRepository = new TestCaseRepository();
             $testCaseRepository->beginTransaction();
-            for ($i = 0; $i < $this->gatheringData; $i++) {
+            for ($i = 0; $i < $numberOfJobs; $i++) {
                 $repo = new GroupedTestCaseRepository($i);
                 $times = $repo->getTimes();
                 echo sprintf('Gathering %s tests from group %s'.PHP_EOL, count($times), $i);
@@ -219,9 +189,9 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
     /**
      *
      */
-    private function updateTimes()
+    private function updateExecutionTimes($runningGroup)
     {
-        $groupRepository = new GroupedTestCaseRepository($this->runningGroup);
+        $groupRepository = new GroupedTestCaseRepository($runningGroup);
         $groupRepository->beginTransaction();
         foreach ($this->chronos as $testCase) {
             $time = $this->chronos[$testCase];
@@ -255,6 +225,4 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
 
         return $groups;
     }
-
-
 }

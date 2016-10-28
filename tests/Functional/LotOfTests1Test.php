@@ -1,8 +1,30 @@
 <?php
 namespace Nikoms\Tests\Functional;
 
+use Nikoms\PhpUnitSplitter\TestCase\Token;
+
 class LotOfTests1Test extends \PHPUnit_Framework_TestCase
 {
+    public function test_testToken_constant_is_not_null()
+    {
+        $this->assertNotNull(TEST_TOKEN);
+    }
+
+    public function test_Token_RunningGroup_is_not_null()
+    {
+        $this->assertNotNull(Token::getRunningGroup());
+    }
+
+    public function test_Token_getTestToken_is_not_null()
+    {
+        $this->assertNotNull(Token::getTestToken());
+    }
+
+    public function test_tetsRunningGroup_constant_is_not_null()
+    {
+        $this->assertNotNull(TEST_RUNNING_GROUP);
+    }
+
     /** @group test1 */
     public function test_0()
     {
