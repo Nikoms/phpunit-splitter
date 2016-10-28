@@ -14,7 +14,7 @@ while [ $# -gt 0 ]; do
 done
 
 
-echo "Splitting in $jobs jobs ($phpunitArgs)";
+echo "Splitting in $jobs jobs (with phpunit arguments: $phpunitArgs)";
 ./vendor/bin/phpunit -d split-jobs=$jobs $phpunitArgs;
 
 for (( i=0; i<$jobs; i++ ))
