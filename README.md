@@ -26,6 +26,25 @@ for i in `./vendor/bin/phpunit --list-groups | grep "^ -" | awk {'print $2'}`; d
  vendor/bin/phpunit-parallel.sh --jobs=5 --filter=_58 --debug
 ```
 
+## To know on which step you are (in boostrap.php for example)
+```
+
+if (Nikoms\PhpUnitSplitter\TestCase\SplitStep::isSplitting()) {
+    //Do something specific before splitting all tests. For example, prepare distant API docker 
+}
+
+if (Nikoms\PhpUnitSplitter\TestCase\SplitStep::isRunning()) {
+    //Do something specific like a normal bootstrap. For example init DB, etc...
+    //Use Token to have a unique id per "running group":
+    echo 'A token: '.Nikoms\PhpUnitSplitter\TestCase\Token::getTestToken();
+    echo 'My running group : '.Nikoms\PhpUnitSplitter\TestCase\Token::getRunningGroup();
+}
+
+if (Nikoms\PhpUnitSplitter\TestCase\SplitStep::isGathering()) {
+    //Do something specific after all tests. For example, destroy a distant API?
+}
+```
+
 
 ## How does it work?
 * Split equally depending on the number of jobs and create fake groups
