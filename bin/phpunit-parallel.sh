@@ -15,7 +15,7 @@ done
 
 
 echo "Splitting in $jobs jobs (with phpunit arguments: $phpunitArgs)";
-./vendor/bin/phpunit -d split-jobs=$jobs $phpunitArgs;
+./vendor/bin/phpunit -d split-jobs=$jobs $phpunitArgs --printer="Nikoms\PhpUnitSplitter\Printer\SplitPrinter";
 
 for (( i=0; i<$jobs; i++ ))
 do
