@@ -26,7 +26,7 @@ for i in `./vendor/bin/phpunit --list-groups | grep "^ -" | awk {'print $2'}`; d
  vendor/bin/phpunit-parallel.sh --jobs=5 --filter=_58 --debug
 ```
 
-## To know on which step you are (in boostrap.php for example)
+## To know on which step you are (in bootstrap.php for example)
 ```
 
 if (Nikoms\PhpUnitSplitter\TestCase\SplitStep::isSplitting()) {
