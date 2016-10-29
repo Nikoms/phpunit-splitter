@@ -56,3 +56,4 @@ if (Nikoms\PhpUnitSplitter\TestCase\SplitStep::isGathering()) {
 ## TODO
 * unit test
 * CI
+* Only display failing tests
