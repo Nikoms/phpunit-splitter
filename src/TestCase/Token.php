@@ -48,7 +48,5 @@ class Token
 
         self::$runningGroup = (int) SplitStep::getValue();
         self::$testToken = uniqid(self::$runningGroup);
-        define('TEST_TOKEN', self::$testToken);
-        define('TEST_RUNNING_GROUP', self::$runningGroup);
     }
 }
