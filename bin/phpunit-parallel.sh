@@ -21,4 +21,4 @@ for (( i=0; i<$jobs; i++ ))
 do
     echo "$i $phpunitArgs"; done | parallel --colsep=' ' ./vendor/bin/phpunit -d split-running-group={};
 
-./vendor/bin/phpunit -d split-gathering-data=$jobs $phpunitArgs;
+./vendor/bin/phpunit -d split-gathering-data=$jobs $phpunitArgs --printer="Nikoms\PhpUnitSplitter\Printer\AggregatePrinter";
