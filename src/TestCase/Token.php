@@ -39,9 +39,6 @@ class Token
      */
     private static function init()
     {
-        if (defined('TEST_TOKEN')) {
-            return;
-        }
         if (!SplitStep::isRunning()) {
             return;
         }
