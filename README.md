@@ -45,6 +45,19 @@ if (Nikoms\PhpUnitSplitter\TestCase\SplitStep::isGathering()) {
 }
 ```
 
+## Activate
+
+Add listener in your phpunit.xml file
+
+```
+<phpunit>
+    ...
+    <listeners>
+        <listener class="Nikoms\PhpUnitSplitter\Listener\SplitListener" />
+    </listeners>
+    ...
+</phpunit>
+```
 
 ## How does it work?
 * Split equally depending on the number of jobs and create fake groups
