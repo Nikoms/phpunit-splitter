@@ -22,11 +22,6 @@ class Group
     private $estimatedTime;
 
     /**
-     * @var string
-     */
-    private $filter;
-
-    /**
      * Group constructor.
      *
      * @param GroupExecutions $groupExecutions
@@ -37,7 +32,6 @@ class Group
     {
         $this->groupExecutions = $groupExecutions;
         $this->estimatedTime = $estimatedTime;
-        $this->filter = $filter;
     }
 
     /**
@@ -69,7 +63,6 @@ class Group
     {
         $this->groupExecutions->set($testCaseId, 0);
         $this->estimatedTime += $estimatedTime;
-
     }
 
     /**
