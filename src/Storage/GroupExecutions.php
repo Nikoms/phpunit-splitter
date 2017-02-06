@@ -70,7 +70,9 @@ class GroupExecutions
      */
     public function delete()
     {
-        unlink($this->pathname);
+        if (file_exists($this->pathname)) {
+            unlink($this->pathname);
+        }
     }
 
     /**
