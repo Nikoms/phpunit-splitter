@@ -6,7 +6,7 @@ class SplitStep
 {
     const SPLIT = 'split';
     const RUN = 'run';
-    const gathering = 'gathering';
+    const GATHERING = 'gathering';
     /**
      * @var string
      */
@@ -28,7 +28,7 @@ class SplitStep
 
     private static function gathering()
     {
-        self::$step = self::gathering;
+        self::$step = self::GATHERING;
     }
 
     public static function isSplitting()
@@ -49,7 +49,7 @@ class SplitStep
     {
         self::init();
 
-        return self::$step === self::gathering;
+        return self::$step === self::GATHERING;
     }
 
     /**
@@ -58,6 +58,14 @@ class SplitStep
     public static function getValue()
     {
         return self::$value;
+    }
+
+    /**
+     * @return string
+     */
+    public static function getStep()
+    {
+        return self::$step;
     }
 
     public static function init()
