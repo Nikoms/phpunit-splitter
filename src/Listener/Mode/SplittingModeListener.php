@@ -28,7 +28,6 @@ class SplittingModeListener extends \PHPUnit_Framework_BaseTestListener
         $lockHandler = new LockHandler('split.lock');
         if ($lockHandler->lock(true)) {
             if (!file_exists($this->splitCounterPahtname)) {
-                sleep(10);
                 $this->initSplitFile();
                 $groups = $this->getGroup()->reset();
 
