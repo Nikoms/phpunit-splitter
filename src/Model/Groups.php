@@ -50,31 +50,7 @@ class Groups
         $testCaseId = $testCase->getId();
         $this->statsStorage->assureTestIsStored($testCaseId);
 
-        $this->orderGroups();
-        $this->groups[0]->addToRun($testCaseId, $this->statsStorage->getAverage($testCaseId));
-
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    private function orderGroups()
-    {
-        usort(
-            $this->groups,
-            function ($group1, $group2) {
-                if ($group1->getEstimatedTime() === $group2->getEstimatedTime()) {
-                    if ($group1->count() === $group2->count()) {
-                        return 0;
-                    }
-
-                    return $group1->count() < $group2->count() ? -1 : 1;
-                }
-
-                return ($group1->getEstimatedTime() < $group2->getEstimatedTime()) ? -1 : 1;
-            }
-        );
+        $this->getFasterGroup()->addToRun($testCaseId, $this->statsStorage->getAverage($testCaseId));
 
         return $this;
     }
@@ -111,5 +87,27 @@ class Groups
         }
 
         return $this;
+    }
+
+
+    /**
+     * @return Group
+     */
+    private function getFasterGroup()
+    {
+        $fasterGroup = $this->groups[0];
+
+        foreach ($this->groups as $group) {
+            if ($fasterGroup->getEstimatedTime() > $group->getEstimatedTime()) {
+                $fasterGroup = $group;
+                continue;
+            }
+            if ($fasterGroup->count() > $group->count()) {
+                $fasterGroup = $group;
+                continue;
+            }
+        }
+
+        return $fasterGroup;
     }
 }

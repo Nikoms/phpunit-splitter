@@ -56,7 +56,7 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
      */
     public function startTestSuite(PHPUnit_Framework_TestSuite $suite)
     {
-        $this->callModeListener('startTestSuite', [$suite]);
+        $this->callModeListener('startTestSuite', func_get_args());
     }
 
     /**

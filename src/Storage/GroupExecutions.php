@@ -25,7 +25,8 @@ class GroupExecutions
      */
     public function __construct($groupId)
     {
-        $this->pathname = sys_get_temp_dir().'/.cache-phpunit-split-'.$groupId.'.php';
+//        $this->pathname = sys_get_temp_dir().'/.cache-phpunit-split-'.$groupId.'.php';
+        $this->pathname = 'cache/phpunit-split-'.$groupId.'.php';
 
         $this->executionTimes = file_exists($this->pathname)
             ? include($this->pathname)

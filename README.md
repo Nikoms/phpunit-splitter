@@ -5,6 +5,25 @@ First idea from Michelangelo van Dam (@DragonBe):
 for i in `./vendor/bin/phpunit --list-groups | grep "^ -" | awk {'print $2'}`; do echo $i; done | time parallel docker run -d -v "$PWD":/var/run/phpunit -w /var/run/phpunit --name pu-docker-{} php:7.0-cli /var/run/phpunit/vendor/bin/phpunit --group {} && for i in `./vendor/bin/phpunit --list-groups | grep "^ -" | awk {'print $2'}`; do docker wait pu-docker-$i | grep -c 0 > /dev/null || docker logs pu-docker-$i && docker rm -f pu-docker-$i > /dev/null; done;
 
 ```
+# New Idea (TODO)
+Run in parallel, with lock at the beginning and at the end to sync. Idea:
+
+```
+./vendor/bin/phpunit -d jobs=5 -d job=0
+```
+
+Use callback in bootstrap.php like:
+```
+SplitStep::beforeSplit(function(){});
+SplitStep::AfterSplit(function(){});
+SplitStep::beforeRun(function(){});
+SplitStep::AfterRun(function(){});
+SplitStep::beforeGather(function(){});
+SplitStep::AfterGather(function(){});
+
+```
+ 
+# Old Idea
 
 ## Making groups
 ```

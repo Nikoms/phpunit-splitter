@@ -7,6 +7,7 @@ use Nikoms\PhpUnitSplitter\Storage\StatsStorage;
 use Nikoms\PhpUnitSplitter\TestCase\SplitStep;
 use Nikoms\PhpUnitSplitter\TestCase\TestCase;
 use PHPUnit_Framework_TestSuite;
+use Symfony\Component\Filesystem\LockHandler;
 
 /**
  * Class SplittingModeListener
@@ -18,14 +19,27 @@ class SplittingModeListener extends \PHPUnit_Framework_BaseTestListener
      */
     public function startTestSuite(\PHPUnit_Framework_TestSuite $suite)
     {
-        $groups = (new Groups($this->getTotalJobs(), new StatsStorage()))->reset();
+        //File will exist if somebody already split tests ... Then we will wait :)
+        $fileLock = 'cache/.split.in-progress';
 
-        foreach ($this->getTestCases($suite) as $testCase) {
-            $groups->addTestCase($testCase);
+        //The first to run will split tests for others!
+        $lockHandler = new LockHandler('split.lock');
+        if ($lockHandler->lock(true)) {
+            if (!file_exists($fileLock)) {
+                touch($fileLock);
+                $groups = $this->getGroup()->reset();
+
+                foreach ($this->getTestCases($suite) as $testCase) {
+                    $groups->addTestCase($testCase);
+                }
+                $groups->save();
+                $lockHandler->release();
+            }else{
+                $groups = $this->getGroup();
+            }
+
+            $this->displayHelp($groups);
         }
-        $groups->save();
-
-        $this->displayHelp($groups);
         $this->doNotRunTests($suite);
     }
 
@@ -78,5 +92,13 @@ class SplittingModeListener extends \PHPUnit_Framework_BaseTestListener
     private function getTotalJobs()
     {
         return SplitStep::getValue();
+    }
+
+    /**
+     * @return Groups
+     */
+    private function getGroup()
+    {
+        return (new Groups($this->getTotalJobs(), new StatsStorage()));
     }
 }
