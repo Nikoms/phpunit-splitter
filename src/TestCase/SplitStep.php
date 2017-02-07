@@ -61,6 +61,14 @@ class SplitStep
     }
 
     /**
+     * @return int
+     */
+    public static function getTotalJobs()
+    {
+        return self::$value;
+    }
+
+    /**
      * @return string
      */
     public static function getStep()
@@ -81,19 +89,19 @@ class SplitStep
             foreach ($options['d'] as $option) {
                 list($key, $value) = explode('=', $option);
                 if ($key === 'split-jobs') {
-                    self::$value = $value;
+                    self::$value = (int) $value;
                     self::splitting();
                     continue;
                 }
 
                 if ($key === 'split-running-group') {
-                    self::$value = $value;
+                    self::$value = (int) $value;
                     self::running();
                     continue;
                 }
 
                 if ($key === 'split-gathering-data') {
-                    self::$value = $value;
+                    self::$value = (int) $value;
                     self::gathering();
                     continue;
                 }

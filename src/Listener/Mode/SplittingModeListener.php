@@ -14,19 +14,22 @@ use Symfony\Component\Filesystem\LockHandler;
  */
 class SplittingModeListener extends \PHPUnit_Framework_BaseTestListener
 {
+
+    private $splitCounterPahtname = 'cache/.split.done.php';
+
     /**
      * @param PHPUnit_Framework_TestSuite $suite
      */
     public function startTestSuite(\PHPUnit_Framework_TestSuite $suite)
     {
         //File will exist if somebody already split tests ... Then we will wait :)
-        $fileLock = 'cache/.split.in-progress';
 
-        //The first to run will split tests for others!
+        //The first will split tests for others!
         $lockHandler = new LockHandler('split.lock');
         if ($lockHandler->lock(true)) {
-            if (!file_exists($fileLock)) {
-                touch($fileLock);
+            if (!file_exists($this->splitCounterPahtname)) {
+                sleep(10);
+                $this->initSplitFile();
                 $groups = $this->getGroup()->reset();
 
                 foreach ($this->getTestCases($suite) as $testCase) {
@@ -34,10 +37,10 @@ class SplittingModeListener extends \PHPUnit_Framework_BaseTestListener
                 }
                 $groups->save();
                 $lockHandler->release();
-            }else{
+            } else {
                 $groups = $this->getGroup();
             }
-
+            $this->splitDone();
             $this->displayHelp($groups);
         }
         $this->doNotRunTests($suite);
@@ -100,5 +103,54 @@ class SplittingModeListener extends \PHPUnit_Framework_BaseTestListener
     private function getGroup()
     {
         return (new Groups($this->getTotalJobs(), new StatsStorage()));
+    }
+
+    /**
+     * @return $this
+     */
+    private function initSplitFile()
+    {
+        $this->updateSplitFile(0);
+
+        return $this;
+    }
+
+    /**
+     * @param int $count
+     *
+     * @return $this
+     */
+    private function updateSplitFile($count)
+    {
+        file_put_contents(
+            $this->splitCounterPahtname,
+            '<?php return '.$count.';'
+        );
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    private function splitDone()
+    {
+        $initDone = include($this->splitCounterPahtname);
+        ++$initDone;
+        $this->updateSplitFile($initDone);
+
+        if (SplitStep::getTotalJobs() === $initDone) {
+            $this->allSplitsDone();
+        }
+
+        return $this;
+    }
+
+    /**
+     *
+     */
+    private function allSplitsDone()
+    {
+        unlink($this->splitCounterPahtname);
     }
 }
