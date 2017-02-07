@@ -21,8 +21,7 @@ class TestCase
      */
     public function __construct(\PHPUnit_Framework_TestCase $testCase)
     {
-        $reflectionClass = new \ReflectionClass($testCase);
-        $this->id = $reflectionClass->getName().'::'.$testCase->getName(true);
+        $this->id = get_class($testCase).'::'.$testCase->getName(true);
         $this->testCase = $testCase;
     }
 
