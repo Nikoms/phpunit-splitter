@@ -55,5 +55,6 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
     public function endTestSuite(PHPUnit_Framework_TestSuite $suite)
     {
         $this->listeners[SplitStep::RUN]->endTestSuite($suite);
+        $this->listeners[SplitStep::GATHERING]->endTestSuite($suite);
     }
 }

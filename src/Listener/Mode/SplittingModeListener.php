@@ -3,6 +3,7 @@
 namespace Nikoms\PhpUnitSplitter\Listener\Mode;
 
 use Nikoms\PhpUnitSplitter\Model\Groups;
+use Nikoms\PhpUnitSplitter\Storage\LockMode;
 use Nikoms\PhpUnitSplitter\Storage\StatsStorage;
 use Nikoms\PhpUnitSplitter\TestCase\SplitStep;
 use PHPUnit_Framework_TestSuite;
@@ -14,8 +15,6 @@ use Symfony\Component\Filesystem\LockHandler;
 class SplittingModeListener extends \PHPUnit_Framework_BaseTestListener
 {
 
-    private $splitCounterPathname = 'cache/.split.done.php';
-
     /**
      * @param PHPUnit_Framework_TestSuite $suite
      */
@@ -23,20 +22,23 @@ class SplittingModeListener extends \PHPUnit_Framework_BaseTestListener
     {
         //The first will split tests for others!
         $lockHandler = new LockHandler('split.lock');
+        $lockMode = new LockMode(SplitStep::getTotalJobs(), 'cache/.split.php');
+
+        //Only the first will create groups
         if ($lockHandler->lock(true)) {
-            if (!file_exists($this->splitCounterPathname)) {
-                $this->initSplitFile();
+            if (!$lockMode->exists()) {
+                $lockMode->init();
                 $groups = $this->getGroup()->reset();
 
                 foreach ($this->getTestCases($suite) as $testCase) {
                     $groups->addTestCase($testCase);
                 }
                 $groups->save();
-                $lockHandler->release();
             } else {
                 $groups = $this->getGroup();
             }
-            $this->splitDone();
+            $lockMode->done(SplitStep::getCurrent());
+            $lockHandler->release();
             $this->displayHelp($groups);
         }
     }
@@ -81,54 +83,5 @@ class SplittingModeListener extends \PHPUnit_Framework_BaseTestListener
     private function getGroup()
     {
         return (new Groups(SplitStep::getTotalJobs(), new StatsStorage()));
-    }
-
-    /**
-     * @return $this
-     */
-    private function initSplitFile()
-    {
-        $this->updateSplitFile(0);
-
-        return $this;
-    }
-
-    /**
-     * @param int $count
-     *
-     * @return $this
-     */
-    private function updateSplitFile($count)
-    {
-        file_put_contents(
-            $this->splitCounterPathname,
-            '<?php return '.$count.';'
-        );
-
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    private function splitDone()
-    {
-        $initDone = include($this->splitCounterPathname);
-        ++$initDone;
-        $this->updateSplitFile($initDone);
-
-        if (SplitStep::getTotalJobs() === $initDone) {
-            $this->allSplitsDone();
-        }
-
-        return $this;
-    }
-
-    /**
-     *
-     */
-    private function allSplitsDone()
-    {
-        unlink($this->splitCounterPathname);
     }
 }

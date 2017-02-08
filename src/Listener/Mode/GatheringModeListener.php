@@ -3,43 +3,50 @@
 namespace Nikoms\PhpUnitSplitter\Listener\Mode;
 
 use Nikoms\PhpUnitSplitter\Storage\GroupExecutions;
+use Nikoms\PhpUnitSplitter\Storage\LockMode;
 use Nikoms\PhpUnitSplitter\Storage\StatsStorage;
 use Nikoms\PhpUnitSplitter\TestCase\SplitStep;
 use PHPUnit_Framework_TestSuite;
+use Symfony\Component\Filesystem\LockHandler;
 
 /**
  * Class GatheringModeListener
  */
 class GatheringModeListener extends \PHPUnit_Framework_BaseTestListener
 {
-    public function startTestSuite(\PHPUnit_Framework_TestSuite $suite)
-    {
-        $this->doNotRunTests($suite);
-    }
-
     /**
      * @param PHPUnit_Framework_TestSuite $suite
      */
-    private function doNotRunTests(PHPUnit_Framework_TestSuite $suite)
-    {
-        $suite->setTests([]);
-    }
-
     public function endTestSuite(PHPUnit_Framework_TestSuite $suite)
     {
-        $numberOfJobs = SplitStep::getTotalJobs();
-        $statsStorage = new StatsStorage();
-        for ($i = 0; $i < $numberOfJobs; $i++) {
-            $groupExecutions = new GroupExecutions($i);
-            $times = $groupExecutions->getExecutionsTime();
-            echo sprintf('Gathering %s tests from group %s'.PHP_EOL, count($times), $i);
-            foreach ($times as $id => $executionTime) {
-                $statsStorage->updateTime($id, $executionTime);
+        $lockHandler = new LockHandler('split.lock');
+        $lockMode = new LockMode(SplitStep::getTotalJobs(), 'cache/.gathering.php');
+
+        //Only one can update the stats at a time
+        if ($lockHandler->lock(true)) {
+            if (!$lockMode->exists()) {
+                $lockMode->init();
             }
-            $groupExecutions->delete();
+            $this->storeCurrentGroupExecutionTimes();
+
+            $lockMode->done(SplitStep::getCurrent());
+            $lockHandler->release();
         }
-        $statsStorage->save();
     }
 
+    /**
+     *
+     */
+    private function storeCurrentGroupExecutionTimes()
+    {
+        $statsStorage = new StatsStorage();
+        $groupExecutions = new GroupExecutions(SplitStep::getCurrent());
 
+        $times = $groupExecutions->getExecutionsTime();
+        foreach ($times as $id => $executionTime) {
+            $statsStorage->updateTime($id, $executionTime);
+        }
+        $groupExecutions->delete();
+        $statsStorage->save();
+    }
 }
