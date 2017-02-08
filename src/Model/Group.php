@@ -26,9 +26,8 @@ class Group
      *
      * @param GroupExecutions $groupExecutions
      * @param int             $estimatedTime
-     * @param string          $filter
      */
-    public function __construct(GroupExecutions $groupExecutions, $estimatedTime, $filter)
+    public function __construct(GroupExecutions $groupExecutions, $estimatedTime)
     {
         $this->groupExecutions = $groupExecutions;
         $this->estimatedTime = $estimatedTime;
@@ -53,6 +52,16 @@ class Group
         $this->groupExecutions->set($testCaseId, round($time * self::TIME_PRECISION));
 
         return $this;
+    }
+
+    /**
+     * @param string $testCaseId
+     *
+     * @return bool
+     */
+    public function has($testCaseId)
+    {
+        return $this->groupExecutions->has($testCaseId);
     }
 
     /**

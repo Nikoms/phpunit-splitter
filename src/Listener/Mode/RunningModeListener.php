@@ -2,6 +2,7 @@
 
 namespace Nikoms\PhpUnitSplitter\Listener\Mode;
 
+use Nikoms\PhpUnitSplitter\Model\Group;
 use Nikoms\PhpUnitSplitter\Storage\GroupExecutions;
 use Nikoms\PhpUnitSplitter\TestCase\SplitStep;
 use Nikoms\PhpUnitSplitter\TestCase\TestCase;
@@ -14,75 +15,49 @@ use PHPUnit_Framework_TestSuite;
 class RunningModeListener extends \PHPUnit_Framework_BaseTestListener
 {
     /**
-     * @var \SplObjectStorage
+     * @var Group
      */
-    private $chronos;
-
-    /**
-     * @var GroupExecutions
-     */
-    private $groupExecutions;
-
-    /**
-     * RunningModeListener constructor.
-     */
-    public function __construct()
-    {
-        $this->chronos = new \SplObjectStorage();
-    }
-
-    /**
-     * @return GroupExecutions
-     */
-    private function getGroupExecutions()
-    {
-        if($this->groupExecutions === null){
-            $this->groupExecutions = new GroupExecutions(SplitStep::getValue());
-        }
-
-        return $this->groupExecutions;
-    }
+    private $currentGroup;
 
     /**
      * @param PHPUnit_Framework_TestSuite $suite
      */
     public function startTestSuite(\PHPUnit_Framework_TestSuite $suite)
     {
-        $testCases = $this->getSuiteTestCases($suite);
+        $this->initCurrentGroup();
+        $testsOfCurrentGroup = array_filter(
+            $this->getTestCases($suite),
+            function (\PHPUnit_Framework_TestCase $testCase) {
+                $testCaseId = TestCase::convertToId($testCase);
 
-        $executionTimes = $this->getGroupExecutions()->getExecutionTimes();
-
-        $filteredTest = array_filter(
-            $testCases,
-            function (TestCase $testCase) use ($executionTimes) {
-                return isset($executionTimes[$testCase->getId()]);
+                return $this->currentGroup->has($testCaseId);
             }
         );
-        $filteredPhpUnitTestCases = array_map(
-            function (TestCase $testCase) {
-                return $testCase->getTestCase();
-            },
-            $filteredTest,
-            [] //This will put the key as auto-inc numeric
-        );
 
-        $suite->setTests($filteredPhpUnitTestCases);
+        $suite->setTests(array_values($testsOfCurrentGroup));
+    }
+
+    /**
+     *
+     */
+    private function initCurrentGroup()
+    {
+        $this->currentGroup = new Group(new GroupExecutions(SplitStep::getCurrent()), 0);
     }
 
     /**
      * @param PHPUnit_Framework_TestSuite $suite
      *
-     * @return TestCase[]
+     * @return \PHPUnit_Framework_TestCase[]
      */
-    private function getSuiteTestCases(PHPUnit_Framework_TestSuite $suite)
+    private function getTestCases(PHPUnit_Framework_TestSuite $suite)
     {
         $testCases = [];
         foreach ($suite as $test) {
             if ($test instanceof PHPUnit_Framework_TestSuite) {
-                $testCases = array_merge($testCases, $this->getSuiteTestCases($test));
+                $testCases = array_merge($testCases, $this->getTestCases($test));
             } else {
-                $testCase = new TestCase($test);
-                $testCases[$testCase->getId()] = $testCase;
+                $testCases[] = $test;
             }
         }
 
@@ -94,19 +69,7 @@ class RunningModeListener extends \PHPUnit_Framework_BaseTestListener
      */
     public function endTestSuite(\PHPUnit_Framework_TestSuite $suite)
     {
-        $this->updateExecutionTimes();
-    }
-
-    /**
-     *
-     */
-    private function updateExecutionTimes()
-    {
-        foreach ($this->chronos as $testCase) {
-            $time = $this->chronos[$testCase];
-            $this->getGroupExecutions()->set($testCase->getId(), $time);
-        }
-        $this->getGroupExecutions()->save();
+        $this->currentGroup->save();
     }
 
     /**
@@ -118,9 +81,7 @@ class RunningModeListener extends \PHPUnit_Framework_BaseTestListener
         if (!$test instanceof \PHPUnit_Framework_TestCase) {
             return;
         }
-
-        $testCase = new TestCase($test);
-        $this->chronos->attach($testCase, $time);
+        $this->currentGroup->set(TestCase::convertToId($test), $time);
     }
 
 }

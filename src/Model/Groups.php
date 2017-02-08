@@ -41,13 +41,13 @@ class Groups
     }
 
     /**
-     * @param TestCase $testCase
+     * @param \PHPUnit_Framework_TestCase $testCase
      *
      * @return $this
      */
-    public function addTestCase(TestCase $testCase)
+    public function addTestCase(\PHPUnit_Framework_TestCase $testCase)
     {
-        $testCaseId = $testCase->getId();
+        $testCaseId = TestCase::convertToId($testCase);
         $this->statsStorage->assureTestIsStored($testCaseId);
 
         $this->getFasterGroup()->addToRun($testCaseId, $this->statsStorage->getAverage($testCaseId));

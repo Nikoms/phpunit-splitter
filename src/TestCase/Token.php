@@ -39,11 +39,7 @@ class Token
      */
     private static function init()
     {
-        if (!SplitStep::isRunning()) {
-            return;
-        }
-
-        self::$runningGroup = (int) SplitStep::getValue();
+        self::$runningGroup = (int) SplitStep::getCurrent();
         self::$testToken = uniqid(self::$runningGroup);
     }
 }

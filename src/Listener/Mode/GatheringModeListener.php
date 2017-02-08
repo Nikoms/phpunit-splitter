@@ -27,11 +27,11 @@ class GatheringModeListener extends \PHPUnit_Framework_BaseTestListener
 
     public function endTestSuite(PHPUnit_Framework_TestSuite $suite)
     {
-        $numberOfJobs = SplitStep::getValue();
+        $numberOfJobs = SplitStep::getTotalJobs();
         $statsStorage = new StatsStorage();
         for ($i = 0; $i < $numberOfJobs; $i++) {
             $groupExecutions = new GroupExecutions($i);
-            $times = $groupExecutions->getExecutionTimes();
+            $times = $groupExecutions->getExecutionsTime();
             echo sprintf('Gathering %s tests from group %s'.PHP_EOL, count($times), $i);
             foreach ($times as $id => $executionTime) {
                 $statsStorage->updateTime($id, $executionTime);

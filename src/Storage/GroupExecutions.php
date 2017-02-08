@@ -95,21 +95,31 @@ class GroupExecutions
     /**
      * @return array
      */
-    public function getExecutionTimes()
+    public function getExecutionsTime()
     {
         return $this->executionTimes;
     }
 
     /**
-     * @param string $id
+     * @param string $testCaseId
      * @param int    $time
      *
      * @return $this
      */
-    public function set($id, $time)
+    public function set($testCaseId, $time)
     {
-        $this->executionTimes[$id] = $time;
+        $this->executionTimes[$testCaseId] = $time;
 
         return $this;
+    }
+
+    /**
+     * @param string $testCaseId
+     *
+     * @return bool
+     */
+    public function has($testCaseId)
+    {
+        return isset($this->executionTimes[$testCaseId]);
     }
 }

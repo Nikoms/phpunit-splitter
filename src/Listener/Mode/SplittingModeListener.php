@@ -5,7 +5,6 @@ namespace Nikoms\PhpUnitSplitter\Listener\Mode;
 use Nikoms\PhpUnitSplitter\Model\Groups;
 use Nikoms\PhpUnitSplitter\Storage\StatsStorage;
 use Nikoms\PhpUnitSplitter\TestCase\SplitStep;
-use Nikoms\PhpUnitSplitter\TestCase\TestCase;
 use PHPUnit_Framework_TestSuite;
 use Symfony\Component\Filesystem\LockHandler;
 
@@ -15,19 +14,17 @@ use Symfony\Component\Filesystem\LockHandler;
 class SplittingModeListener extends \PHPUnit_Framework_BaseTestListener
 {
 
-    private $splitCounterPahtname = 'cache/.split.done.php';
+    private $splitCounterPathname = 'cache/.split.done.php';
 
     /**
      * @param PHPUnit_Framework_TestSuite $suite
      */
     public function startTestSuite(\PHPUnit_Framework_TestSuite $suite)
     {
-        //File will exist if somebody already split tests ... Then we will wait :)
-
         //The first will split tests for others!
         $lockHandler = new LockHandler('split.lock');
         if ($lockHandler->lock(true)) {
-            if (!file_exists($this->splitCounterPahtname)) {
+            if (!file_exists($this->splitCounterPathname)) {
                 $this->initSplitFile();
                 $groups = $this->getGroup()->reset();
 
@@ -42,35 +39,25 @@ class SplittingModeListener extends \PHPUnit_Framework_BaseTestListener
             $this->splitDone();
             $this->displayHelp($groups);
         }
-        $this->doNotRunTests($suite);
     }
 
     /**
      * @param PHPUnit_Framework_TestSuite $suite
      *
-     * @return TestCase[]
+     * @return \PHPUnit_Framework_TestCase[]
      */
     private function getTestCases(PHPUnit_Framework_TestSuite $suite)
     {
         $testCases = [];
         foreach ($suite as $test) {
             if ($test instanceof PHPUnit_Framework_TestSuite) {
-                $testCases += $this->getTestCases($test);
+                $testCases = array_merge($testCases, $this->getTestCases($test));
             } else {
-                $testCase = new TestCase($test);
-                $testCases[$testCase->getId()] = $testCase;
+                $testCases[] = $test;
             }
         }
 
         return $testCases;
-    }
-
-    /**
-     * @param PHPUnit_Framework_TestSuite $suite
-     */
-    private function doNotRunTests(PHPUnit_Framework_TestSuite $suite)
-    {
-        $suite->setTests([]);
     }
 
     /**
@@ -89,19 +76,11 @@ class SplittingModeListener extends \PHPUnit_Framework_BaseTestListener
     }
 
     /**
-     * @return int
-     */
-    private function getTotalJobs()
-    {
-        return SplitStep::getValue();
-    }
-
-    /**
      * @return Groups
      */
     private function getGroup()
     {
-        return (new Groups($this->getTotalJobs(), new StatsStorage()));
+        return (new Groups(SplitStep::getTotalJobs(), new StatsStorage()));
     }
 
     /**
@@ -122,7 +101,7 @@ class SplittingModeListener extends \PHPUnit_Framework_BaseTestListener
     private function updateSplitFile($count)
     {
         file_put_contents(
-            $this->splitCounterPahtname,
+            $this->splitCounterPathname,
             '<?php return '.$count.';'
         );
 
@@ -134,7 +113,7 @@ class SplittingModeListener extends \PHPUnit_Framework_BaseTestListener
      */
     private function splitDone()
     {
-        $initDone = include($this->splitCounterPahtname);
+        $initDone = include($this->splitCounterPathname);
         ++$initDone;
         $this->updateSplitFile($initDone);
 
@@ -150,6 +129,6 @@ class SplittingModeListener extends \PHPUnit_Framework_BaseTestListener
      */
     private function allSplitsDone()
     {
-        unlink($this->splitCounterPahtname);
+        unlink($this->splitCounterPathname);
     }
 }

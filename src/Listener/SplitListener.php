@@ -31,24 +31,13 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
         ];
 
     }
-
-    /**
-     * @param string $method
-     * @param array  $arguments
-     */
-    public function callModeListener($method, array $arguments)
-    {
-        $listener = $this->listeners[SplitStep::getStep()];
-        call_user_func_array([$listener, $method], $arguments);
-    }
-
     /**
      * @param PHPUnit_Framework_Test $test
      * @param float                  $time
      */
     public function endTest(PHPUnit_Framework_Test $test, $time)
     {
-        $this->callModeListener(__FUNCTION__, func_get_args());
+        $this->listeners[SplitStep::RUN]->endTest($test, $time);
     }
 
     /**
@@ -65,6 +54,6 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
      */
     public function endTestSuite(PHPUnit_Framework_TestSuite $suite)
     {
-        $this->callModeListener(__FUNCTION__, func_get_args());
+        $this->listeners[SplitStep::RUN]->endTestSuite($suite);
     }
 }

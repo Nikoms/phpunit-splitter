@@ -10,77 +10,49 @@ class SplitStep
     /**
      * @var string
      */
-    private static $step;
+    private static $isInitialized = false;
+
     /**
      * @var int
      */
-    private static $value;
-
-    private static function splitting()
-    {
-        self::$step = self::SPLIT;
-    }
-
-    private static function running()
-    {
-        self::$step = self::RUN;
-    }
-
-    private static function gathering()
-    {
-        self::$step = self::GATHERING;
-    }
-
-    public static function isSplitting()
-    {
-        self::init();
-
-        return self::$step === self::SPLIT;
-    }
-
-    public static function isRunning()
-    {
-        self::init();
-
-        return self::$step === self::RUN;
-    }
-
-    public static function isGathering()
-    {
-        self::init();
-
-        return self::$step === self::GATHERING;
-    }
+    private static $totalJobs = 'UNSET';
 
     /**
-     * @return int
+     * @var int
      */
-    public static function getValue()
-    {
-        return self::$value;
-    }
+    private static $current;
+
 
     /**
      * @return int
      */
     public static function getTotalJobs()
     {
-        return self::$value;
+        self::init();
+
+        return self::$totalJobs;
     }
 
     /**
-     * @return string
+     * @return int
      */
-    public static function getStep()
+    public static function getCurrent()
     {
-        return self::$step;
+        self::init();
+
+        return self::$current;
     }
 
+    /**
+     *
+     */
     public static function init()
     {
-        if (self::$step !== null) {
+        if (self::$isInitialized) {
             return;
         }
+        self::$isInitialized = true;
+
         $options = getopt(
             'd:'
         );
@@ -89,20 +61,12 @@ class SplitStep
             foreach ($options['d'] as $option) {
                 list($key, $value) = explode('=', $option);
                 if ($key === 'split-jobs') {
-                    self::$value = (int) $value;
-                    self::splitting();
+                    self::$totalJobs = (int)$value;
                     continue;
                 }
 
-                if ($key === 'split-running-group') {
-                    self::$value = (int) $value;
-                    self::running();
-                    continue;
-                }
-
-                if ($key === 'split-gathering-data') {
-                    self::$value = (int) $value;
-                    self::gathering();
+                if ($key === 'split-current') {
+                    self::$current = (int)$value;
                     continue;
                 }
             }
