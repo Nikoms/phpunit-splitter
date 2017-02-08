@@ -12,12 +12,12 @@ use Symfony\Component\Filesystem\LockHandler;
 /**
  * Class GatheringModeListener
  */
-class GatheringModeListener extends \PHPUnit_Framework_BaseTestListener
+class GatheringModeListener
 {
     /**
-     * @param PHPUnit_Framework_TestSuite $suite
+     *
      */
-    public function endTestSuite(PHPUnit_Framework_TestSuite $suite)
+    public function endTestSuite()
     {
         $lockHandler = new LockHandler('split.lock');
         $lockMode = new LockMode(SplitStep::getTotalJobs(), 'cache/.gathering.php');

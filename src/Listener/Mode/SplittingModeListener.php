@@ -12,7 +12,7 @@ use Symfony\Component\Filesystem\LockHandler;
 /**
  * Class SplittingModeListener
  */
-class SplittingModeListener extends \PHPUnit_Framework_BaseTestListener
+class SplittingModeListener
 {
 
     /**

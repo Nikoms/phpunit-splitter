@@ -12,7 +12,7 @@ use PHPUnit_Framework_TestSuite;
 /**
  * Class RunningModeListener
  */
-class RunningModeListener extends \PHPUnit_Framework_BaseTestListener
+class RunningModeListener
 {
     /**
      * @var Group
@@ -64,10 +64,7 @@ class RunningModeListener extends \PHPUnit_Framework_BaseTestListener
         return $testCases;
     }
 
-    /**
-     * @param PHPUnit_Framework_TestSuite $suite
-     */
-    public function endTestSuite(\PHPUnit_Framework_TestSuite $suite)
+    public function endTestSuite()
     {
         $this->currentGroup->save();
     }

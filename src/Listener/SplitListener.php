@@ -13,22 +13,29 @@ use PHPUnit_Framework_TestSuite;
  */
 class SplitListener extends \PHPUnit_Framework_BaseTestListener
 {
+    /**
+     * @var GatheringModeListener
+     */
+    private $gatheringModeListener;
 
     /**
-     * @var \PHPUnit_Framework_BaseTestListener[]
+     * @var RunningModeListener
      */
-    private $listeners;
+    private $runningModeListener;
+
+    /**
+     * @var SplittingModeListener
+     */
+    private $splittingModeListener;
 
     /**
      * SplitListener constructor.
      */
     public function __construct()
     {
-        $this->listeners = [
-            SplitStep::GATHERING => new GatheringModeListener(),
-            SplitStep::RUN => new RunningModeListener(),
-            SplitStep::SPLIT => new SplittingModeListener(),
-        ];
+        $this->splittingModeListener = new SplittingModeListener();
+        $this->runningModeListener = new RunningModeListener();
+        $this->gatheringModeListener = new GatheringModeListener();
 
     }
     /**
@@ -37,7 +44,7 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
      */
     public function endTest(PHPUnit_Framework_Test $test, $time)
     {
-        $this->listeners[SplitStep::RUN]->endTest($test, $time);
+        $this->runningModeListener->endTest($test, $time);
     }
 
     /**
@@ -45,8 +52,8 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
      */
     public function startTestSuite(PHPUnit_Framework_TestSuite $suite)
     {
-        $this->listeners[SplitStep::SPLIT]->startTestSuite($suite);
-        $this->listeners[SplitStep::RUN]->startTestSuite($suite);
+        $this->splittingModeListener->startTestSuite($suite);
+        $this->runningModeListener->startTestSuite($suite);
     }
 
     /**
@@ -54,7 +61,7 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
      */
     public function endTestSuite(PHPUnit_Framework_TestSuite $suite)
     {
-        $this->listeners[SplitStep::RUN]->endTestSuite($suite);
-        $this->listeners[SplitStep::GATHERING]->endTestSuite($suite);
+        $this->runningModeListener->endTestSuite();
+        $this->gatheringModeListener->endTestSuite();
     }
 }
