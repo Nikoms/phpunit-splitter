@@ -26,8 +26,7 @@ class SplittingModeListener extends \PHPUnit_Framework_BaseTestListener
 
         //Only the first will create groups
         if ($lockHandler->lock(true)) {
-            if (!$lockMode->exists()) {
-                $lockMode->init();
+            if ($lockMode->isFirst()) {
                 $groups = $this->getGroup()->reset();
 
                 foreach ($this->getTestCases($suite) as $testCase) {

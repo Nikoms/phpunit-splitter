@@ -31,28 +31,20 @@ class LockMode
     /**
      * @return bool
      */
-    public function exists()
+    public function isFirst()
     {
-        return file_exists($this->lockFilePathname);
+        return !file_exists($this->lockFilePathname);
     }
 
     /**
+     * @param string $testCaseId
+     *
      * @return $this
      */
-    public function init()
+    public function done($testCaseId)
     {
-        $this->updateFile([]);
-
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    public function done($id)
-    {
-        $jobsDone = include($this->lockFilePathname);
-        $jobsDone[$id] = true;
+        $jobsDone = $this->isFirst() ? [] : include($this->lockFilePathname);
+        $jobsDone[$testCaseId] = true;
         $this->updateFile($jobsDone);
 
         if ($this->totalJobs === count($jobsDone)) {
@@ -86,5 +78,4 @@ class LockMode
 
         return $this;
     }
-
 }

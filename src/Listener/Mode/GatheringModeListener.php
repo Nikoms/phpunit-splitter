@@ -24,11 +24,7 @@ class GatheringModeListener extends \PHPUnit_Framework_BaseTestListener
 
         //Only one can update the stats at a time
         if ($lockHandler->lock(true)) {
-            if (!$lockMode->exists()) {
-                $lockMode->init();
-            }
             $this->storeCurrentGroupExecutionTimes();
-
             $lockMode->done(SplitStep::getCurrent());
             $lockHandler->release();
         }
