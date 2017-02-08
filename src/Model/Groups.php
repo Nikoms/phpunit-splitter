@@ -30,11 +30,7 @@ class Groups
     public function __construct($numberOfGroups, StatsStorage $statsStorage)
     {
         for ($i = 0; $i < $numberOfGroups; $i++) {
-            $this->groups[] = new Group(
-                new GroupExecutions($i),
-                0,
-                '^EmptyFilter\Class::function$'
-            );
+            $this->groups[] = new Group(new GroupExecutions($i), 0);
         }
 
         $this->statsStorage = $statsStorage;
