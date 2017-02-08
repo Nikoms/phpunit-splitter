@@ -14,8 +14,11 @@
         <testsuite name="Main suite">
             <directory>./tests/unit</directory>
         </testsuite>
-        <testsuite name="Functional tests">
-            <directory>./tests/Functional</directory>
+        <testsuite name="Functional tests 1">
+            <directory>./tests/Functional1</directory>
+        </testsuite>
+        <testsuite name="Functional tests 2">
+            <directory>./tests/Functional2</directory>
         </testsuite>
     </testsuites>
     <filter>

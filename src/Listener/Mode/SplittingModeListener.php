@@ -24,13 +24,13 @@ class SplittingModeListener
         $lockHandler = new LockHandler('split.lock');
         $lockMode = new LockMode(SplitStep::getTotalJobs(), 'cache/.split.php');
 
-        //Only the first will create groups
+        //Only the first will create groups, others will wait for it :)
         if ($lockHandler->lock(true)) {
             if ($lockMode->isFirst()) {
                 $groups = $this->getGroup()->reset();
 
                 foreach ($this->getTestCases($suite) as $testCase) {
-                    $groups->addTestCase($testCase);
+                    $groups->addTestInBestGroup($testCase);
                 }
                 $groups->save();
             } else {
