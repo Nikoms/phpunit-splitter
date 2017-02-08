@@ -4,7 +4,6 @@ namespace Nikoms\PhpUnitSplitter\Listener;
 use Nikoms\PhpUnitSplitter\Listener\Mode\GatheringModeListener;
 use Nikoms\PhpUnitSplitter\Listener\Mode\RunningModeListener;
 use Nikoms\PhpUnitSplitter\Listener\Mode\SplittingModeListener;
-use Nikoms\PhpUnitSplitter\TestCase\SplitStep;
 use PHPUnit_Framework_Test;
 use PHPUnit_Framework_TestSuite;
 

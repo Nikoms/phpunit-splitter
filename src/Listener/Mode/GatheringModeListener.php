@@ -6,7 +6,6 @@ use Nikoms\PhpUnitSplitter\Storage\GroupExecutions;
 use Nikoms\PhpUnitSplitter\Storage\LockMode;
 use Nikoms\PhpUnitSplitter\Storage\StatsStorage;
 use Nikoms\PhpUnitSplitter\TestCase\SplitStep;
-use PHPUnit_Framework_TestSuite;
 use Symfony\Component\Filesystem\LockHandler;
 
 /**
