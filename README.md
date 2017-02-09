@@ -1,28 +1,33 @@
 # Phpunit-splitter
 
-paratest does not work well for my needs. So I was thinking of a new way of doing this.
+## Split to rule them all!
+
+_paratest_ does not work well for my needs. So I was thinking of a new way of doing this.
 
 
-
-Michelangelo van Dam (@DragonBe) opened the door with a very nice idea:
+Michelangelo van Dam (@DragonBe) opened the door with a very good idea:
 ```
 for i in `./vendor/bin/phpunit --list-groups | grep "^ -" | awk {'print $2'}`; do echo $i; done | time parallel docker run -d -v "$PWD":/path/to/docker/folder -w /path/to/docker/folder --name pu-docker-{} php:7.0-cli /path/to/docker/folder/vendor/bin/phpunit --group {} && for i in `./vendor/bin/phpunit --list-groups | grep "^ -" | awk {'print $2'}`; do docker wait pu-docker-$i | grep -c 0 > /dev/null || docker logs pu-docker-$i && docker rm -f pu-docker-$i > /dev/null; done;
 ```
 
-It was so cool, but limited to "@group" annotation... And I don't want to give to much power to the developer. I want a scalable solution without touching the code!
+It was so cool, but limited to "@group" annotation... There are some problems with that:
+* It gives to much power to the human
+* It won't be split equally (timing)
+* If you want to scale more, you have to update "groups" ...
+* ... and by that it means committing code for "nothing"
+* You need php installed (It run `/vendor/bin/phpunit`)
 
-* Let's not care about groups! 
-* Let phpunit choose which tests must be run together
-* Group must depend on the average execution time of each test!
-* The developer must only specify in how many process the tests must be split
+What I propose here is simple:
 
-```
-jobs="5"; for ((i=0; i<$jobs; i++)) do echo $i; done | time parallel docker run -d -v "$PWD":/path/to/docker/folder -w /path/to/docker/folder --name pu-docker-{} php:7.0-cli /path/to/docker/folder/vendor/bin/phpunit -d split-jobs=$jobs -d split-current={} && for ((i=0; i<$jobs; i++)); do docker wait pu-docker-$i | grep -c 0 > /dev/null || docker logs pu-docker-$i && docker rm -f pu-docker-$i > /dev/null; done;
-```
+* Let's not care about groups!
+* Let phpunit choose which tests must run together
+* Groups of test must be ran in the same amount of time ... depending on the average execution time of each test!
+* The developer must only specify in how many processes/groups the tests must be split
+* You don't need php on your machine!
 
 ## Installation
 
-JUST listener in your phpunit.xml file... That's it!
+JUST add listener in your phpunit.xml file... That's it!
 
 ```
 <phpunit>
@@ -34,19 +39,53 @@ JUST listener in your phpunit.xml file... That's it!
 </phpunit>
 ```
 
-## To know on which step you are (in bootstrap.php for example)
+## Running like a pro
+
+It looks like the previous command, but you only have to change the "jobs" variable. Let this plugin do the split for you :)
+
 ```
-//TODO: Use callback
+jobs="5"; for ((i=0; i<$jobs; i++)) do echo $i; done | time parallel docker run -d -v "$PWD":/path/to/docker/folder -w /path/to/docker/folder --name pu-docker-{} php:7.0-cli /path/to/docker/folder/vendor/bin/phpunit -d split-jobs=$jobs -d split-current={} && for ((i=0; i<$jobs; i++)); do docker wait pu-docker-$i | grep -c 0 > /dev/null || docker logs pu-docker-$i && docker rm -f pu-docker-$i > /dev/null; done;
 ```
 
-## How does it work?
-* Split equally depending on the number of jobs and create fake groups
-* Parallel loop over jobs
-* Run tests that only have this fake group
-* When all tests are over get the new timers, recalculate all averages, delete tmp sqlite files
+## Bootstrap like a pro
 
+In phpunit, you can create a "bootstrap" file that will be included before tests start.
+
+There is the same logic with this plugin and **on top of that**, there are events to know exactly on which step your are and in which group!
+
+```
+//Put this in your bootstrap.php
+
+SplitStep::on(
+    SplitStep::EVENT_BEFORE_SPLIT,
+    function () {
+        // Do something before creating groups.
+        // NB: It only happen on one random process. Do not create constant here
+    }
+);
+
+SplitStep::on(
+    SplitStep::EVENT_AFTER_SPLIT,
+    function () {
+        // Do something when all groups are set
+        // NB: It only happen on one random process. Do not create constant here
+    }
+);
+
+SplitStep::on(
+    SplitStep::EVENT_BEFORE_RUN,
+    function () {
+        // Before running one group. Ex: Creating DB, storing a constant with "define", etc...
+    }
+);
+SplitStep::on(
+    SplitStep::EVENT_AFTER_RUN,
+    function () {
+        // After running one group. Ex: dropping DB
+    }
+);
+```
 
 ## TODO
 * unit test
 * CI
-* Only display failing tests
