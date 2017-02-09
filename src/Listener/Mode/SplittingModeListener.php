@@ -26,13 +26,16 @@ class SplittingModeListener
 
         //Only the first will create groups, others will wait for it :)
         if ($lockHandler->lock(true)) {
-            if ($lockMode->isFirst()) {
+            $isFirst = $lockMode->isFirst();
+            if ($isFirst) {
+                SplitStep::dispatch(SplitStep::EVENT_BEFORE_SPLIT);
                 $groups = (new Groups(SplitStep::getTotalJobs(), new StatsStorage()))->reset();
 
                 foreach ($this->getTestCases($suite) as $testCase) {
                     $groups->addInBestGroup($testCase);
                 }
                 $groups->save();
+                SplitStep::dispatch(SplitStep::EVENT_AFTER_SPLIT);
                 $this->displayGroups($groups);
             } else {
                 echo sprintf('Running group "%s"', SplitStep::getCurrent()).PHP_EOL.PHP_EOL;

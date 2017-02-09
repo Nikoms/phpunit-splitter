@@ -4,6 +4,10 @@ namespace Nikoms\PhpUnitSplitter\TestCase;
 
 class SplitStep
 {
+    const EVENT_BEFORE_SPLIT = 'before.split';
+    const EVENT_AFTER_SPLIT = 'after.split';
+    const EVENT_BEFORE_RUN = 'before.run';
+    const EVENT_AFTER_RUN = 'after.run';
     const SPLIT = 'split';
     const RUN = 'run';
     const GATHERING = 'gathering';
@@ -21,6 +25,11 @@ class SplitStep
      * @var int
      */
     private static $current = null;
+
+    /**
+     * @var callable[][]
+     */
+    private static $listeners = [];
 
 
     /**
@@ -71,12 +80,32 @@ class SplitStep
                 }
             }
         }
-        if(self::$totalJobs === null){
+        if (self::$totalJobs === null) {
             self::$totalJobs = 1;
         }
-        if(self::$current === null){
+        if (self::$current === null) {
             self::$current = 0;
         }
+    }
 
+    /**
+     * @param string   $eventName
+     * @param callable $call
+     */
+    public static function on($eventName, callable $call)
+    {
+        self::$listeners[$eventName][] = $call;
+    }
+
+    /**
+     * @param string $eventName
+     */
+    public static function dispatch($eventName)
+    {
+        if(self::$listeners[$eventName]){
+            foreach(self::$listeners[$eventName] as $listener){
+                $listener();
+            }
+        }
     }
 }

@@ -24,6 +24,7 @@ class RunningModeListener
      */
     public function startTestSuite(\PHPUnit_Framework_TestSuite $suite)
     {
+        SplitStep::dispatch(SplitStep::EVENT_BEFORE_RUN);
         $this->initCurrentGroup();
         $testsOfCurrentGroup = array_filter(
             $this->getTestCases($suite),
@@ -67,6 +68,7 @@ class RunningModeListener
     public function endTestSuite()
     {
         $this->currentGroup->save();
+        SplitStep::dispatch(SplitStep::EVENT_AFTER_RUN);
     }
 
     /**
