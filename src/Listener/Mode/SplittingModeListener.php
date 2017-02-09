@@ -21,24 +21,24 @@ class SplittingModeListener
     public function startTestSuite(\PHPUnit_Framework_TestSuite $suite)
     {
         //The first will split tests for others!
-        $lockHandler = new LockHandler('split.lock');
+        $lockHandler = new LockHandler('split', 'cache');
         $lockMode = new LockMode(SplitStep::getTotalJobs(), 'cache/.split.php');
 
         //Only the first will create groups, others will wait for it :)
         if ($lockHandler->lock(true)) {
             if ($lockMode->isFirst()) {
-                $groups = $this->getGroup()->reset();
+                $groups = (new Groups(SplitStep::getTotalJobs(), new StatsStorage()))->reset();
 
                 foreach ($this->getTestCases($suite) as $testCase) {
                     $groups->addTestInBestGroup($testCase);
                 }
                 $groups->save();
+                $this->displayGroups($groups);
             } else {
-                $groups = $this->getGroup();
+                echo sprintf('Running group "%s"', SplitStep::getCurrent()).PHP_EOL.PHP_EOL;
             }
             $lockMode->done(SplitStep::getCurrent());
             $lockHandler->release();
-            $this->displayHelp($groups);
         }
     }
 
@@ -64,7 +64,7 @@ class SplittingModeListener
     /**
      * @param Groups $groups
      */
-    private function displayHelp(Groups $groups)
+    private function displayGroups(Groups $groups)
     {
         foreach ($groups->toArray() as $id => $group) {
             echo sprintf(
@@ -74,13 +74,5 @@ class SplittingModeListener
                     $group->getEstimatedTimeInSec()
                 ).PHP_EOL;
         }
-    }
-
-    /**
-     * @return Groups
-     */
-    private function getGroup()
-    {
-        return (new Groups(SplitStep::getTotalJobs(), new StatsStorage()));
     }
 }

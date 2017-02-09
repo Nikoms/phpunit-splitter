@@ -82,5 +82,7 @@ class StatsStorage
     public function save()
     {
         file_put_contents(self::CACHE_STATS_PATHNAME, '<?php return '.var_export($this->stats, true).';');
+        //When docker run the command
+        chmod(self::CACHE_STATS_PATHNAME, 0777);
     }
 }

@@ -15,12 +15,12 @@ class SplitStep
     /**
      * @var int
      */
-    private static $totalJobs = 'UNSET';
+    private static $totalJobs = null;
 
     /**
      * @var int
      */
-    private static $current;
+    private static $current = null;
 
 
     /**
@@ -71,5 +71,12 @@ class SplitStep
                 }
             }
         }
+        if(self::$totalJobs === null){
+            self::$totalJobs = 1;
+        }
+        if(self::$current === null){
+            self::$current = 0;
+        }
+
     }
 }
