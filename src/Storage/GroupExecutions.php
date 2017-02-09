@@ -53,7 +53,7 @@ class GroupExecutions
     {
         file_put_contents($this->pathname, '<?php return '.var_export($executionTimes, true).';');
         //When docker run the command
-        chmod($this->pathname, 0777);
+        @chmod($this->pathname, 0777);
 
         return $this;
     }
