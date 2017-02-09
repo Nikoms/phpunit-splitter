@@ -41,7 +41,7 @@ class Groups
      *
      * @return $this
      */
-    public function addTestInBestGroup(\PHPUnit_Framework_TestCase $testCase)
+    public function addInBestGroup(\PHPUnit_Framework_TestCase $testCase)
     {
         $testCaseId = TestCase::convertToId($testCase);
         $this->statsStorage->assureTestIsStored($testCaseId);

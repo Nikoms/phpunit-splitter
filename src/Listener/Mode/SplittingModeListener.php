@@ -30,7 +30,7 @@ class SplittingModeListener
                 $groups = (new Groups(SplitStep::getTotalJobs(), new StatsStorage()))->reset();
 
                 foreach ($this->getTestCases($suite) as $testCase) {
-                    $groups->addTestInBestGroup($testCase);
+                    $groups->addInBestGroup($testCase);
                 }
                 $groups->save();
                 $this->displayGroups($groups);
