@@ -72,7 +72,7 @@ class SplittingModeListener
                     $id,
                     $group->count(),
                     $group->getEstimatedTimeInSec()
-                ).PHP_EOL;
+                ).PHP_EOL.PHP_EOL;
         }
     }
 }
