@@ -94,3 +94,4 @@ SplitStep::on(
 ## TODO
 * unit test
 * CI
+* Be compatible with phpunit 6
