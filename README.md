@@ -27,7 +27,12 @@ What I propose here is simple:
 
 ## Installation
 
-JUST add listener in your phpunit.xml file... That's it!
+Via composer, it's easy:
+```
+composer install nikoms/phpunit-splitter
+```
+
+Then, juste add a listener in your phpunit.xml(.dist) file... That's it!
 
 ```
 <phpunit>
