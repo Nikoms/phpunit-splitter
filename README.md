@@ -1,5 +1,5 @@
 [![SensioLabsInsight](https://insight.sensiolabs.com/projects/6c31c675-d230-4330-b33f-701806e39d78/mini.png)](https://insight.sensiolabs.com/projects/6c31c675-d230-4330-b33f-701806e39d78)
-[![Build Status](https://api.travis-ci.org/Nikoms/phpunit-splitter.png)](https://api.travis-ci.org/Nikoms/phpunit-splitter)
+[![Build Status](https://travis-ci.org/Nikoms/phpunit-splitter.svg?branch=master)](https://travis-ci.org/Nikoms/phpunit-splitter/)
 [![Scrutinizer Quality Score](https://scrutinizer-ci.com/g/Nikoms/phpunit-splitter/badges/quality-score.png)](https://scrutinizer-ci.com/g/Nikoms/phpunit-splitter/)
 [![Code Coverage](https://scrutinizer-ci.com/g/Nikoms/phpunit-splitter/badges/coverage.png)](https://scrutinizer-ci.com/g/Nikoms/phpunit-splitter/)
 
