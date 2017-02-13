@@ -12,6 +12,14 @@ env:
 - PHPUNIT_VERSION=4.8.*
 - PHPUNIT_VERSION=5.7.*
 
+matrix:
+  exclude:
+  - php: 5.4
+    env: PHPUNIT_VERSION=5.7.*
+  exclude:
+  - php: 5.5
+    env: PHPUNIT_VERSION=5.7.*
+
 cache:
   directories:
     - $COMPOSER_CACHE_DIR
