@@ -12,7 +12,7 @@ class SplitStep
     const RUN = 'run';
     const GATHERING = 'gathering';
     /**
-     * @var string
+     * @var bool
      */
     private static $isInitialized = false;
 
