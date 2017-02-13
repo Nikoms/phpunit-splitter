@@ -16,6 +16,6 @@
   },
   "require": {
     "phpunit/phpunit": "4.*||5.*",
-    "symfony/filesystem": "^3.2"
+    "symfony/filesystem": "2.*||3.*"
   }
 }
