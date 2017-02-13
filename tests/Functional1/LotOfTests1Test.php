@@ -19,7 +19,7 @@ class LotOfTests1Test extends \PHPUnit_Framework_TestCase
     public function test_0()
     {
         sleep(0);
-        $this->assertTrue(false);
+        $this->assertTrue(true);
     }
 
     /** @group test1 */
