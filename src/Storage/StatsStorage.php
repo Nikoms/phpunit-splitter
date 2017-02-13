@@ -10,6 +10,11 @@ class StatsStorage
     const CACHE_STATS_PATHNAME = 'cache/stats.php';
 
     /**
+     * @var array
+     */
+    private $stats;
+
+    /**
      * StatsStorage constructor.
      */
     public function __construct()
