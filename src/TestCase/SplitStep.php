@@ -102,7 +102,7 @@ class SplitStep
      */
     public static function dispatch($eventName)
     {
-        if(self::$listeners[$eventName]){
+        if(isset(self::$listeners[$eventName])){
             foreach(self::$listeners[$eventName] as $listener){
                 $listener();
             }
