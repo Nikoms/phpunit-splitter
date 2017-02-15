@@ -17,7 +17,7 @@ for i in `./vendor/bin/phpunit --list-groups | grep "^ -" | awk {'print $2'}`; d
 ```
 
 It was so cool, but limited to "@group" annotation... There are some problems with that:
-* It gives to much power to the human
+* It gives too much power to the human
 * It won't be split equally (timing)
 * If you want to scale more, you have to update "groups" ...
 * ... and by that it means committing code for "nothing"
