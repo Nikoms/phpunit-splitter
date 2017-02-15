@@ -35,7 +35,7 @@ What I propose here is simple:
 
 Via composer, it's easy:
 ```
-composer install nikoms/phpunit-splitter
+composer require nikoms/phpunit-splitter
 ```
 
 Then, juste add a listener in your phpunit.xml(.dist) file... That's it!
