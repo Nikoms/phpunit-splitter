@@ -1,6 +1,6 @@
 <?php
 
-namespace Nikoms\PhpUnitSplitter\Listener\Mode;
+namespace Nikoms\PhpUnitSplitter\Job;
 
 use Nikoms\PhpUnitSplitter\Model\Group;
 use Nikoms\PhpUnitSplitter\Storage\GroupExecutions;
@@ -10,9 +10,9 @@ use PHPUnit_Framework_Test;
 use PHPUnit_Framework_TestSuite;
 
 /**
- * Class RunningModeListener
+ * Class RunJob
  */
-class RunningModeListener
+class RunJob
 {
     /**
      * @var Group
@@ -22,7 +22,7 @@ class RunningModeListener
     /**
      * @param PHPUnit_Framework_TestSuite $suite
      */
-    public function startTestSuite(\PHPUnit_Framework_TestSuite $suite)
+    public function initTestsToRun(\PHPUnit_Framework_TestSuite $suite)
     {
         Splitter::dispatch(Splitter::BEFORE_RUN);
         $this->initCurrentGroup();
@@ -65,7 +65,7 @@ class RunningModeListener
         return $testCases;
     }
 
-    public function endTestSuite()
+    public function flushExecutionTimes()
     {
         $this->currentGroup->save();
         Splitter::dispatch(Splitter::AFTER_RUN);
@@ -75,7 +75,7 @@ class RunningModeListener
      * @param PHPUnit_Framework_Test $test
      * @param float                  $time
      */
-    public function endTest(PHPUnit_Framework_Test $test, $time)
+    public function persistExecutionTime(PHPUnit_Framework_Test $test, $time)
     {
         if (!$test instanceof \PHPUnit_Framework_TestCase) {
             return;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Nikoms\PhpUnitSplitter\Listener\Mode;
+namespace Nikoms\PhpUnitSplitter\Job;
 
 use Nikoms\PhpUnitSplitter\Model\Groups;
 use Nikoms\PhpUnitSplitter\Lock\JobLocker;
@@ -10,15 +10,15 @@ use PHPUnit_Framework_TestSuite;
 use Symfony\Component\Filesystem\LockHandler;
 
 /**
- * Class SplittingModeListener
+ * Class SplitJob
  */
-class SplittingModeListener
+class SplitJob
 {
 
     /**
      * @param PHPUnit_Framework_TestSuite $suite
      */
-    public function startTestSuite(\PHPUnit_Framework_TestSuite $suite)
+    public function splitSuite(\PHPUnit_Framework_TestSuite $suite)
     {
         //The first will split tests for others!
         $lockHandler = new LockHandler('split', 'cache');

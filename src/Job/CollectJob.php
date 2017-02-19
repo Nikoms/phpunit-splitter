@@ -1,6 +1,6 @@
 <?php
 
-namespace Nikoms\PhpUnitSplitter\Listener\Mode;
+namespace Nikoms\PhpUnitSplitter\Job;
 
 use Nikoms\PhpUnitSplitter\Storage\GroupExecutions;
 use Nikoms\PhpUnitSplitter\Lock\JobLocker;
@@ -9,17 +9,17 @@ use Nikoms\PhpUnitSplitter\Splitter;
 use Symfony\Component\Filesystem\LockHandler;
 
 /**
- * Class GatheringModeListener
+ * Class CollectJob
  */
-class GatheringModeListener
+class CollectJob
 {
     /**
      *
      */
-    public function endTestSuite()
+    public function recalculateAverage()
     {
-        $lockHandler = new LockHandler('gathering', 'cache');
-        $lockMode = new JobLocker(Splitter::getTotalProcesses(), 'gathering');
+        $lockHandler = new LockHandler('collect', 'cache');
+        $lockMode = new JobLocker(Splitter::getTotalProcesses(), 'collect');
 
         //Only one can update the stats at a time
         if ($lockHandler->lock(true)) {
