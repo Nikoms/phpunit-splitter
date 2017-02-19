@@ -5,7 +5,7 @@ namespace Nikoms\PhpUnitSplitter\Listener\Mode;
 use Nikoms\PhpUnitSplitter\Model\Group;
 use Nikoms\PhpUnitSplitter\Storage\GroupExecutions;
 use Nikoms\PhpUnitSplitter\TestCase\SplitStep;
-use Nikoms\PhpUnitSplitter\TestCase\TestCase;
+use Nikoms\PhpUnitSplitter\TestCaseId;
 use PHPUnit_Framework_Test;
 use PHPUnit_Framework_TestSuite;
 
@@ -29,7 +29,7 @@ class RunningModeListener
         $testsOfCurrentGroup = array_filter(
             $this->getTestCases($suite),
             function (\PHPUnit_Framework_TestCase $testCase) {
-                $testCaseId = TestCase::convertToId($testCase);
+                $testCaseId = TestCaseId::fromTestCase($testCase);
 
                 return $this->currentGroup->has($testCaseId);
             }
@@ -80,7 +80,7 @@ class RunningModeListener
         if (!$test instanceof \PHPUnit_Framework_TestCase) {
             return;
         }
-        $this->currentGroup->set(TestCase::convertToId($test), $time);
+        $this->currentGroup->set(TestCaseId::fromTestCase($test), $time);
     }
 
 }

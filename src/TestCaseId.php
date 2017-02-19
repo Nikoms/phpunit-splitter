@@ -1,15 +1,15 @@
 <?php
 
-namespace Nikoms\PhpUnitSplitter\TestCase;
+namespace Nikoms\PhpUnitSplitter;
 
-class TestCase
+class TestCaseId
 {
     /**
      * @param \PHPUnit_Framework_TestCase $testCase
      *
      * @return string
      */
-    public static function convertToId(\PHPUnit_Framework_TestCase $testCase)
+    public static function fromTestCase(\PHPUnit_Framework_TestCase $testCase)
     {
         return get_class($testCase).'::'.$testCase->getName(true);
     }

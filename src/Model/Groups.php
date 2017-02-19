@@ -4,7 +4,7 @@ namespace Nikoms\PhpUnitSplitter\Model;
 
 use Nikoms\PhpUnitSplitter\Storage\GroupExecutions;
 use Nikoms\PhpUnitSplitter\Storage\StatsStorage;
-use Nikoms\PhpUnitSplitter\TestCase\TestCase;
+use Nikoms\PhpUnitSplitter\TestCaseId;
 
 /**
  * Class Groups
@@ -43,7 +43,7 @@ class Groups
      */
     public function addInBestGroup(\PHPUnit_Framework_TestCase $testCase)
     {
-        $testCaseId = TestCase::convertToId($testCase);
+        $testCaseId = TestCaseId::fromTestCase($testCase);
         $this->statsStorage->assureTestIsStored($testCaseId);
 
         $this->getFasterGroup()->addToRun($testCaseId, $this->statsStorage->getAverage($testCaseId));
