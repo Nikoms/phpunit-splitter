@@ -38,9 +38,9 @@ class SplitJob
                 Splitter::dispatch(Splitter::AFTER_SPLIT);
                 $this->displayGroups($groups);
             } else {
-                echo sprintf('Running group "%s"', Splitter::getCurrent()).PHP_EOL.PHP_EOL;
+                echo sprintf('Running group "%s"', Splitter::getCurrentProcess()).PHP_EOL.PHP_EOL;
             }
-            $lockMode->processDone(Splitter::getCurrent());
+            $lockMode->processDone(Splitter::getCurrentProcess());
             $lockHandler->release();
         }
     }

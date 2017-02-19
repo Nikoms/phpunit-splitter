@@ -43,7 +43,7 @@ class RunJob
      */
     private function initCurrentGroup()
     {
-        $this->currentGroup = new Group(new GroupExecutions(Splitter::getCurrent()), 0);
+        $this->currentGroup = new Group(new GroupExecutions(Splitter::getCurrentProcess()), 0);
     }
 
     /**

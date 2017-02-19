@@ -24,7 +24,7 @@ class CollectJob
         //Only one can update the stats at a time
         if ($lockHandler->lock(true)) {
             $this->storeCurrentGroupExecutionTimes();
-            $lockMode->processDone(Splitter::getCurrent());
+            $lockMode->processDone(Splitter::getCurrentProcess());
             $lockHandler->release();
         }
     }
@@ -35,7 +35,7 @@ class CollectJob
     private function storeCurrentGroupExecutionTimes()
     {
         $statsStorage = new StatsStorage();
-        $groupExecutions = new GroupExecutions(Splitter::getCurrent());
+        $groupExecutions = new GroupExecutions(Splitter::getCurrentProcess());
 
         $times = $groupExecutions->getExecutionsTime();
         foreach ($times as $id => $executionTime) {

@@ -22,7 +22,7 @@ class Splitter
     /**
      * @var int
      */
-    private static $current = 0;
+    private static $currentProcess = 0;
 
     /**
      * @var callable[][]
@@ -43,11 +43,11 @@ class Splitter
     /**
      * @return int
      */
-    public static function getCurrent()
+    public static function getCurrentProcess()
     {
         self::init();
 
-        return self::$current;
+        return self::$currentProcess;
     }
 
     /**
@@ -66,13 +66,13 @@ class Splitter
             $options['d'] = (array)$options['d'];
             foreach ($options['d'] as $option) {
                 list($key, $value) = explode('=', $option);
-                if ($key === 'split-total-processes') {
+                if ($key === 'split-total') {
                     self::$totalProcesses = (int)$value;
                     continue;
                 }
 
                 if ($key === 'split-current') {
-                    self::$current = (int)$value;
+                    self::$currentProcess = (int)$value;
                     continue;
                 }
             }

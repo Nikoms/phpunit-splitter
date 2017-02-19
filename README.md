@@ -55,7 +55,7 @@ Then, juste add a listener in your phpunit.xml(.dist) file... That's it!
 It looks like the previous command, but you only have to change the "jobs" variable. Let this plugin do the split for you :)
 
 ```
-totalProcesses="5"; for ((i=0; i<$totalProcesses; i++)) do echo $i; done | time parallel docker run -d -v "$PWD":/path/to/docker/folder -w /path/to/docker/folder --name pu-docker-{} php:7.0-cli /path/to/docker/folder/vendor/bin/phpunit -d split-total-processes=$totalProcesses -d split-current={} && for ((i=0; i<$totalProcesses; i++)); do docker wait pu-docker-$i | grep -c 0 > /dev/null || docker logs pu-docker-$i && docker rm -f pu-docker-$i > /dev/null; done;
+totalProcesses="5"; for ((i=0; i<$totalProcesses; i++)) do echo $i; done | time parallel docker run -d -v "$PWD":/path/to/docker/folder -w /path/to/docker/folder --name pu-docker-{} php:7.0-cli /path/to/docker/folder/vendor/bin/phpunit -d split-total=$totalProcesses -d split-current={} && for ((i=0; i<$totalProcesses; i++)); do docker wait pu-docker-$i | grep -c 0 > /dev/null || docker logs pu-docker-$i && docker rm -f pu-docker-$i > /dev/null; done;
 ```
 
 ## Bootstrap like a pro
