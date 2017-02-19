@@ -3,7 +3,7 @@
 namespace Nikoms\PhpUnitSplitter\Listener\Mode;
 
 use Nikoms\PhpUnitSplitter\Model\Groups;
-use Nikoms\PhpUnitSplitter\Storage\LockMode;
+use Nikoms\PhpUnitSplitter\Lock\JobLocker;
 use Nikoms\PhpUnitSplitter\Storage\StatsStorage;
 use Nikoms\PhpUnitSplitter\TestCase\SplitStep;
 use PHPUnit_Framework_TestSuite;
@@ -22,7 +22,7 @@ class SplittingModeListener
     {
         //The first will split tests for others!
         $lockHandler = new LockHandler('split', 'cache');
-        $lockMode = new LockMode(SplitStep::getTotalJobs(), 'cache/.split.php');
+        $lockMode = new JobLocker(SplitStep::getTotalJobs(), 'split');
 
         //Only the first will create groups, others will wait for it :)
         if ($lockHandler->lock(true)) {
@@ -40,7 +40,7 @@ class SplittingModeListener
             } else {
                 echo sprintf('Running group "%s"', SplitStep::getCurrent()).PHP_EOL.PHP_EOL;
             }
-            $lockMode->done(SplitStep::getCurrent());
+            $lockMode->processDone(SplitStep::getCurrent());
             $lockHandler->release();
         }
     }
