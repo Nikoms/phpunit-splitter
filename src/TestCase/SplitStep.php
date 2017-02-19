@@ -19,7 +19,7 @@ class SplitStep
     /**
      * @var int
      */
-    private static $totalJobs = null;
+    private static $totalProcesses = null;
 
     /**
      * @var int
@@ -35,11 +35,11 @@ class SplitStep
     /**
      * @return int
      */
-    public static function getTotalJobs()
+    public static function getTotalProcesses()
     {
         self::init();
 
-        return self::$totalJobs;
+        return self::$totalProcesses;
     }
 
     /**
@@ -69,8 +69,8 @@ class SplitStep
             $options['d'] = (array)$options['d'];
             foreach ($options['d'] as $option) {
                 list($key, $value) = explode('=', $option);
-                if ($key === 'split-jobs') {
-                    self::$totalJobs = (int)$value;
+                if ($key === 'split-total-processes') {
+                    self::$totalProcesses = (int)$value;
                     continue;
                 }
 
@@ -80,8 +80,8 @@ class SplitStep
                 }
             }
         }
-        if (self::$totalJobs === null) {
-            self::$totalJobs = 1;
+        if (self::$totalProcesses === null) {
+            self::$totalProcesses = 1;
         }
         if (self::$current === null) {
             self::$current = 0;

@@ -22,14 +22,14 @@ class SplittingModeListener
     {
         //The first will split tests for others!
         $lockHandler = new LockHandler('split', 'cache');
-        $lockMode = new JobLocker(SplitStep::getTotalJobs(), 'split');
+        $lockMode = new JobLocker(SplitStep::getTotalProcesses(), 'split');
 
         //Only the first will create groups, others will wait for it :)
         if ($lockHandler->lock(true)) {
             $isFirst = $lockMode->isFirst();
             if ($isFirst) {
                 SplitStep::dispatch(SplitStep::EVENT_BEFORE_SPLIT);
-                $groups = (new Groups(SplitStep::getTotalJobs(), new StatsStorage()))->reset();
+                $groups = (new Groups(SplitStep::getTotalProcesses(), new StatsStorage()))->reset();
 
                 foreach ($this->getTestCases($suite) as $testCase) {
                     $groups->addInBestGroup($testCase);

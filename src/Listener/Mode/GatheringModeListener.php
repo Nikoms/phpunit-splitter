@@ -19,7 +19,7 @@ class GatheringModeListener
     public function endTestSuite()
     {
         $lockHandler = new LockHandler('gathering', 'cache');
-        $lockMode = new JobLocker(SplitStep::getTotalJobs(), 'gathering');
+        $lockMode = new JobLocker(SplitStep::getTotalProcesses(), 'gathering');
 
         //Only one can update the stats at a time
         if ($lockHandler->lock(true)) {
