@@ -4,7 +4,7 @@ namespace Nikoms\PhpUnitSplitter\Listener\Mode;
 
 use Nikoms\PhpUnitSplitter\Model\Group;
 use Nikoms\PhpUnitSplitter\Storage\GroupExecutions;
-use Nikoms\PhpUnitSplitter\TestCase\SplitStep;
+use Nikoms\PhpUnitSplitter\Splitter;
 use Nikoms\PhpUnitSplitter\TestCaseId;
 use PHPUnit_Framework_Test;
 use PHPUnit_Framework_TestSuite;
@@ -24,7 +24,7 @@ class RunningModeListener
      */
     public function startTestSuite(\PHPUnit_Framework_TestSuite $suite)
     {
-        SplitStep::dispatch(SplitStep::EVENT_BEFORE_RUN);
+        Splitter::dispatch(Splitter::BEFORE_RUN);
         $this->initCurrentGroup();
         $testsOfCurrentGroup = array_filter(
             $this->getTestCases($suite),
@@ -43,7 +43,7 @@ class RunningModeListener
      */
     private function initCurrentGroup()
     {
-        $this->currentGroup = new Group(new GroupExecutions(SplitStep::getCurrent()), 0);
+        $this->currentGroup = new Group(new GroupExecutions(Splitter::getCurrent()), 0);
     }
 
     /**
@@ -68,7 +68,7 @@ class RunningModeListener
     public function endTestSuite()
     {
         $this->currentGroup->save();
-        SplitStep::dispatch(SplitStep::EVENT_AFTER_RUN);
+        Splitter::dispatch(Splitter::AFTER_RUN);
     }
 
     /**

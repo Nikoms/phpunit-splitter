@@ -1,16 +1,14 @@
 <?php
 
-namespace Nikoms\PhpUnitSplitter\TestCase;
+namespace Nikoms\PhpUnitSplitter;
 
-class SplitStep
+class Splitter
 {
-    const EVENT_BEFORE_SPLIT = 'before.split';
-    const EVENT_AFTER_SPLIT = 'after.split';
-    const EVENT_BEFORE_RUN = 'before.run';
-    const EVENT_AFTER_RUN = 'after.run';
-    const SPLIT = 'split';
-    const RUN = 'run';
-    const GATHERING = 'gathering';
+    const BEFORE_SPLIT = 'before.split';
+    const AFTER_SPLIT = 'after.split';
+    const BEFORE_RUN = 'before.run';
+    const AFTER_RUN = 'after.run';
+
     /**
      * @var bool
      */
@@ -19,12 +17,12 @@ class SplitStep
     /**
      * @var int
      */
-    private static $totalProcesses = null;
+    private static $totalProcesses = 1;
 
     /**
      * @var int
      */
-    private static $current = null;
+    private static $current = 0;
 
     /**
      * @var callable[][]
@@ -62,9 +60,8 @@ class SplitStep
         }
         self::$isInitialized = true;
 
-        $options = getopt(
-            'd:'
-        );
+        $options = getopt('d:');
+
         if (isset($options['d'])) {
             $options['d'] = (array)$options['d'];
             foreach ($options['d'] as $option) {
@@ -79,12 +76,6 @@ class SplitStep
                     continue;
                 }
             }
-        }
-        if (self::$totalProcesses === null) {
-            self::$totalProcesses = 1;
-        }
-        if (self::$current === null) {
-            self::$current = 0;
         }
     }
 

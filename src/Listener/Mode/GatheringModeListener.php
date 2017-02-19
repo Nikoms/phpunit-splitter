@@ -5,7 +5,7 @@ namespace Nikoms\PhpUnitSplitter\Listener\Mode;
 use Nikoms\PhpUnitSplitter\Storage\GroupExecutions;
 use Nikoms\PhpUnitSplitter\Lock\JobLocker;
 use Nikoms\PhpUnitSplitter\Storage\StatsStorage;
-use Nikoms\PhpUnitSplitter\TestCase\SplitStep;
+use Nikoms\PhpUnitSplitter\Splitter;
 use Symfony\Component\Filesystem\LockHandler;
 
 /**
@@ -19,12 +19,12 @@ class GatheringModeListener
     public function endTestSuite()
     {
         $lockHandler = new LockHandler('gathering', 'cache');
-        $lockMode = new JobLocker(SplitStep::getTotalProcesses(), 'gathering');
+        $lockMode = new JobLocker(Splitter::getTotalProcesses(), 'gathering');
 
         //Only one can update the stats at a time
         if ($lockHandler->lock(true)) {
             $this->storeCurrentGroupExecutionTimes();
-            $lockMode->processDone(SplitStep::getCurrent());
+            $lockMode->processDone(Splitter::getCurrent());
             $lockHandler->release();
         }
     }
@@ -35,7 +35,7 @@ class GatheringModeListener
     private function storeCurrentGroupExecutionTimes()
     {
         $statsStorage = new StatsStorage();
-        $groupExecutions = new GroupExecutions(SplitStep::getCurrent());
+        $groupExecutions = new GroupExecutions(Splitter::getCurrent());
 
         $times = $groupExecutions->getExecutionsTime();
         foreach ($times as $id => $executionTime) {

@@ -65,32 +65,36 @@ In phpunit, you can create a "bootstrap" file that will be included before tests
 There is the same logic with this plugin and **on top of that**, there are events to know exactly on which step your are and in which group!
 
 ```
-//Put this in your bootstrap.php
+//Put this in your "bootstrap.php"
+include(__DIR__.'/vendor/autoload.php');
 
-SplitStep::on(
-    SplitStep::EVENT_BEFORE_SPLIT,
+use Nikoms\PhpUnitSplitter\Splitter;
+
+
+Splitter::on(
+    Splitter::BEFORE_SPLIT,
     function () {
         // Do something before creating groups.
         // NB: It only happen on one random process. Do not create constant here
     }
 );
 
-SplitStep::on(
-    SplitStep::EVENT_AFTER_SPLIT,
+Splitter::on(
+    Splitter::AFTER_SPLIT,
     function () {
         // Do something when all groups are set
         // NB: It only happen on one random process. Do not create constant here
     }
 );
 
-SplitStep::on(
-    SplitStep::EVENT_BEFORE_RUN,
+Splitter::on(
+    Splitter::BEFORE_RUN,
     function () {
         // Before running one group. Ex: Creating DB, storing a constant with "define", etc...
     }
 );
-SplitStep::on(
-    SplitStep::EVENT_AFTER_RUN,
+Splitter::on(
+    Splitter::AFTER_RUN,
     function () {
         // After running one group. Ex: dropping DB
     }
