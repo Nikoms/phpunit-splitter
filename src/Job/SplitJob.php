@@ -6,7 +6,7 @@ use Nikoms\PhpUnitSplitter\Lock\JobLocker;
 use Nikoms\PhpUnitSplitter\Model\Group;
 use Nikoms\PhpUnitSplitter\Model\Groups;
 use Nikoms\PhpUnitSplitter\Splitter;
-use Nikoms\PhpUnitSplitter\Storage\StatsStorage;
+use Nikoms\PhpUnitSplitter\Stats;
 use PHPUnit_Framework_TestSuite;
 use Symfony\Component\Filesystem\LockHandler;
 
@@ -45,7 +45,7 @@ class SplitJob
             $isFirst = $lockMode->isFirst();
             if ($isFirst) {
                 Splitter::dispatch(Splitter::BEFORE_SPLIT);
-                $groups = (new Groups($this->totalGroups, new StatsStorage()))->reset();
+                $groups = (new Groups($this->totalGroups, new Stats()))->reset();
 
                 foreach ($this->getTestCases($suite) as $testCase) {
                     $groups->addInBestGroup($testCase);

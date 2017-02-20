@@ -4,8 +4,7 @@ namespace Nikoms\PhpUnitSplitter\Job;
 
 use Nikoms\PhpUnitSplitter\Lock\JobLocker;
 use Nikoms\PhpUnitSplitter\Model\Group;
-use Nikoms\PhpUnitSplitter\Storage\GroupExecutions;
-use Nikoms\PhpUnitSplitter\Storage\StatsStorage;
+use Nikoms\PhpUnitSplitter\Stats;
 use Symfony\Component\Filesystem\LockHandler;
 
 /**
@@ -49,14 +48,14 @@ class CollectJob
      */
     private function storeGroupExecutionTimes($groupId)
     {
-        $statsStorage = new StatsStorage();
+        $stats = new Stats();
         $group = new Group($groupId);
 
         $times = $group->getExecutionsTimes();
         foreach ($times as $id => $executionTime) {
-            $statsStorage->updateTime($id, $executionTime);
+            $stats->updateTime($id, $executionTime);
         }
         $group->delete();
-        $statsStorage->save();
+        $stats->save();
     }
 }

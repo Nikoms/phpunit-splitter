@@ -2,8 +2,7 @@
 
 namespace Nikoms\PhpUnitSplitter\Model;
 
-use Nikoms\PhpUnitSplitter\Storage\GroupExecutions;
-use Nikoms\PhpUnitSplitter\Storage\StatsStorage;
+use Nikoms\PhpUnitSplitter\Stats;
 use Nikoms\PhpUnitSplitter\TestCaseId;
 
 /**
@@ -17,23 +16,23 @@ class Groups
     private $groups = [];
 
     /**
-     * @var StatsStorage
+     * @var Stats
      */
-    private $statsStorage;
+    private $stats;
 
     /**
      * Groups constructor.
      *
      * @param int          $numberOfGroups
-     * @param StatsStorage $statsStorage
+     * @param Stats $stats
      */
-    public function __construct($numberOfGroups, StatsStorage $statsStorage)
+    public function __construct($numberOfGroups, Stats $stats)
     {
         for ($i = 0; $i < $numberOfGroups; $i++) {
             $this->groups[] = new Group($i);
         }
 
-        $this->statsStorage = $statsStorage;
+        $this->stats = $stats;
     }
 
     /**
@@ -44,9 +43,9 @@ class Groups
     public function addInBestGroup(\PHPUnit_Framework_TestCase $testCase)
     {
         $testCaseId = TestCaseId::fromTestCase($testCase);
-        $this->statsStorage->assureTestIsStored($testCaseId);
+        $this->stats->assureTestIsStored($testCaseId);
 
-        $this->getFasterGroup()->addToRun($testCaseId, $this->statsStorage->getAverage($testCaseId));
+        $this->getFasterGroup()->addToRun($testCaseId, $this->stats->getAverage($testCaseId));
 
         return $this;
     }
@@ -76,7 +75,7 @@ class Groups
      */
     public function save()
     {
-        $this->statsStorage->save();
+        $this->stats->save();
 
         foreach ($this->groups as $group) {
             $group->save();

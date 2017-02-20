@@ -1,11 +1,11 @@
 <?php
 
-namespace Nikoms\PhpUnitSplitter\Storage;
+namespace Nikoms\PhpUnitSplitter;
 
 /**
- * Class StatsStorage
+ * Class Stats
  */
-class StatsStorage
+class Stats
 {
     const CACHE_STATS_PATHNAME = 'cache/stats.php';
 
