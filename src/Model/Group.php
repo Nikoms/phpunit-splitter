@@ -23,22 +23,36 @@ class Group
      * @var int
      */
     private $estimatedTime = 0;
+    /**
+     * @var int
+     */
+    private $id;
 
     /**
      * Group constructor.
      *
-     * @param int $groupId
+     * @param int $id
      */
-    public function __construct($groupId)
+    public function __construct($id)
     {
-        $this->pathname = 'cache/phpunit-split-'.$groupId.'.php';
+        $this->pathname = 'cache/phpunit-split-'.$id.'.php';
 
         if (file_exists($this->pathname)) {
             $storage = include($this->pathname);
             $this->executionTimes = $storage['executionTimes'];
             $this->estimatedTime = $storage['estimatedTime'];
         }
+        $this->id = $id;
     }
+
+    /**
+     * @return int
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+
 
     /**
      * @return int

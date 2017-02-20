@@ -91,10 +91,10 @@ class SplitJob
      */
     private function displayGroups(Groups $groups)
     {
-        foreach ($groups->toArray() as $id => $group) {
+        foreach ($groups->toArray() as $group) {
             echo sprintf(
                     '> Group %s : %s tests (Estimated time: %s sec)',
-                    $id,
+                    $group->getId(),
                     $group->count(),
                     $group->getEstimatedTimeInSec()
                 ).PHP_EOL.PHP_EOL;
