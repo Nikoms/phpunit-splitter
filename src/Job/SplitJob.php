@@ -53,14 +53,6 @@ class SplitJob
                 $groups->save();
                 Splitter::dispatch(Splitter::AFTER_SPLIT);
                 $this->displayGroups($groups);
-            } else {
-                $group = new Group($currentGroupId);
-                echo sprintf(
-                    'Running group "%s" : Estimated time : %s sec.',
-                    $currentGroupId,
-                    $group->getEstimatedTimeInSec()
-                );
-                echo PHP_EOL.PHP_EOL;
             }
             $lockMode->groupDone($currentGroupId);
             $lockHandler->release();

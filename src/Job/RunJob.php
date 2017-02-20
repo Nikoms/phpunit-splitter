@@ -45,6 +45,12 @@ class RunJob
     private function initCurrentGroup($groupId)
     {
         $this->currentGroup = new Group($groupId);
+        echo sprintf(
+            'Running group "%s". Estimated time : %s sec.',
+            $this->currentGroup->getId(),
+            $this->currentGroup->getEstimatedTimeInSec()
+        );
+        echo PHP_EOL.PHP_EOL;
     }
 
     /**
