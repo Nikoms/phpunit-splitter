@@ -138,6 +138,6 @@ class Group
      */
     public function getEstimatedTimeInSec()
     {
-        return round($this->getEstimatedTime() / Group::TIME_PRECISION, 2);
+        return round($this->getEstimatedTime() / self::TIME_PRECISION, 2);
     }
 }
