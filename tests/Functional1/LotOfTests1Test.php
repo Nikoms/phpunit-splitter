@@ -6,7 +6,7 @@ class LotOfTests1Test extends \PHPUnit_Framework_TestCase
     /** @group test1 */
     public function test_0()
     {
-        sleep(0);
+        sleep(2);
         $this->assertTrue(true);
     }
 
