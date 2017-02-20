@@ -13,7 +13,7 @@ _paratest_ does not work well for my needs. So I was thinking of a new way of do
 
 Michelangelo van Dam (@DragonBe) opened the door with a very good idea:
 ```
-for i in `./vendor/bin/phpunit --list-groups | grep "^ -" | awk {'print $2'}`; do echo $i; processDone | time parallel docker run -d -v "$PWD":/path/to/docker/folder -w /path/to/docker/folder --name pu-docker-{} php:7.0-cli /path/to/docker/folder/vendor/bin/phpunit --group {} && for i in `./vendor/bin/phpunit --list-groups | grep "^ -" | awk {'print $2'}`; do docker wait pu-docker-$i | grep -c 0 > /dev/null || docker logs pu-docker-$i && docker rm -f pu-docker-$i > /dev/null; processDone;
+for i in `./vendor/bin/phpunit --list-groups | grep "^ -" | awk {'print $2'}`; do echo $i; groupDone | time parallel docker run -d -v "$PWD":/path/to/docker/folder -w /path/to/docker/folder --name pu-docker-{} php:7.0-cli /path/to/docker/folder/vendor/bin/phpunit --group {} && for i in `./vendor/bin/phpunit --list-groups | grep "^ -" | awk {'print $2'}`; do docker wait pu-docker-$i | grep -c 0 > /dev/null || docker logs pu-docker-$i && docker rm -f pu-docker-$i > /dev/null; groupDone;
 ```
 
 It was so cool, but limited to "@group" annotation... There are some problems with that:

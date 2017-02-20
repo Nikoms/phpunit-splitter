@@ -19,12 +19,12 @@ class CollectJob
     public function recalculateAverage()
     {
         $lockHandler = new LockHandler('collect', 'cache');
-        $lockMode = new JobLocker(Splitter::getTotalProcesses(), 'collect');
+        $lockMode = new JobLocker(Splitter::getTotalGroups(), 'collect');
 
         //Only one can update the stats at a time
         if ($lockHandler->lock(true)) {
             $this->storeCurrentGroupExecutionTimes();
-            $lockMode->processDone(Splitter::getCurrentProcess());
+            $lockMode->groupDone(Splitter::getCurrentGroup());
             $lockHandler->release();
         }
     }
@@ -35,7 +35,7 @@ class CollectJob
     private function storeCurrentGroupExecutionTimes()
     {
         $statsStorage = new StatsStorage();
-        $groupExecutions = new GroupExecutions(Splitter::getCurrentProcess());
+        $groupExecutions = new GroupExecutions(Splitter::getCurrentGroup());
 
         $times = $groupExecutions->getExecutionsTime();
         foreach ($times as $id => $executionTime) {

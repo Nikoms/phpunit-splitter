@@ -17,12 +17,12 @@ class Splitter
     /**
      * @var int
      */
-    private static $totalProcesses = 1;
+    private static $totalGroups = 1;
 
     /**
      * @var int
      */
-    private static $currentProcess = 0;
+    private static $currentGroup = 0;
 
     /**
      * @var callable[][]
@@ -33,21 +33,21 @@ class Splitter
     /**
      * @return int
      */
-    public static function getTotalProcesses()
+    public static function getTotalGroups()
     {
         self::init();
 
-        return self::$totalProcesses;
+        return self::$totalGroups;
     }
 
     /**
      * @return int
      */
-    public static function getCurrentProcess()
+    public static function getCurrentGroup()
     {
         self::init();
 
-        return self::$currentProcess;
+        return self::$currentGroup;
     }
 
     /**
@@ -67,12 +67,12 @@ class Splitter
             foreach ($options['d'] as $option) {
                 list($key, $value) = explode('=', $option);
                 if ($key === 'split-total') {
-                    self::$totalProcesses = (int)$value;
+                    self::$totalGroups = (int)$value;
                     continue;
                 }
 
                 if ($key === 'split-current') {
-                    self::$currentProcess = (int)$value;
+                    self::$currentGroup = (int)$value;
                     continue;
                 }
             }

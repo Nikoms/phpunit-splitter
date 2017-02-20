@@ -22,14 +22,14 @@ class SplitJob
     {
         //The first will split tests for others!
         $lockHandler = new LockHandler('split', 'cache');
-        $lockMode = new JobLocker(Splitter::getTotalProcesses(), 'split');
+        $lockMode = new JobLocker(Splitter::getTotalGroups(), 'split');
 
         //Only the first will create groups, others will wait for it :)
         if ($lockHandler->lock(true)) {
             $isFirst = $lockMode->isFirst();
             if ($isFirst) {
                 Splitter::dispatch(Splitter::BEFORE_SPLIT);
-                $groups = (new Groups(Splitter::getTotalProcesses(), new StatsStorage()))->reset();
+                $groups = (new Groups(Splitter::getTotalGroups(), new StatsStorage()))->reset();
 
                 foreach ($this->getTestCases($suite) as $testCase) {
                     $groups->addInBestGroup($testCase);
@@ -38,9 +38,9 @@ class SplitJob
                 Splitter::dispatch(Splitter::AFTER_SPLIT);
                 $this->displayGroups($groups);
             } else {
-                echo sprintf('Running group "%s"', Splitter::getCurrentProcess()).PHP_EOL.PHP_EOL;
+                echo sprintf('Running group "%s"', Splitter::getCurrentGroup()).PHP_EOL.PHP_EOL;
             }
-            $lockMode->processDone(Splitter::getCurrentProcess());
+            $lockMode->groupDone(Splitter::getCurrentGroup());
             $lockHandler->release();
         }
     }

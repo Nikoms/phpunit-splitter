@@ -10,7 +10,7 @@ class JobLocker
     /**
      * @var int
      */
-    private $maxProcess;
+    private $totalGroups;
 
     /**
      * @var string
@@ -20,12 +20,12 @@ class JobLocker
     /**
      * LockMode constructor.
      *
-     * @param int    $maxProcess
+     * @param int    $totalGroups
      * @param string $jobName
      */
-    public function __construct($maxProcess, $jobName)
+    public function __construct($totalGroups, $jobName)
     {
-        $this->maxProcess = $maxProcess;
+        $this->totalGroups = $totalGroups;
         $this->lockFilePathname = sprintf('cache/.%s.php', $jobName);
     }
 
@@ -38,17 +38,17 @@ class JobLocker
     }
 
     /**
-     * @param string $processId
+     * @param string $groupId
      *
      * @return $this
      */
-    public function processDone($processId)
+    public function groupDone($groupId)
     {
-        $processesDone = $this->isFirst() ? [] : include($this->lockFilePathname);
-        $processesDone[$processId] = true;
-        $this->updateFile($processesDone);
+        $executedGroups = $this->isFirst() ? [] : include($this->lockFilePathname);
+        $executedGroups[$groupId] = true;
+        $this->updateFile($executedGroups);
 
-        if ($this->maxProcess === count($processesDone)) {
+        if ($this->totalGroups === count($executedGroups)) {
             $this->allDone();
         }
 
@@ -56,15 +56,15 @@ class JobLocker
     }
 
     /**
-     * @param array $processesDone
+     * @param array $executedGroups
      *
      * @return $this
      */
-    private function updateFile(array $processesDone)
+    private function updateFile(array $executedGroups)
     {
         file_put_contents(
             $this->lockFilePathname,
-            '<?php return '.var_export($processesDone, true).';'
+            '<?php return '.var_export($executedGroups, true).';'
         );
 
         return $this;
