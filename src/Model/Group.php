@@ -2,17 +2,14 @@
 
 namespace Nikoms\PhpUnitSplitter\Model;
 
+use Nikoms\PhpUnitSplitter\Storage\FileStorage;
+
 /**
  * Class Group
  */
 class Group
 {
     const TIME_PRECISION = 1000000;
-
-    /**
-     * @var string
-     */
-    private $pathname;
 
     /**
      * @var array
@@ -29,20 +26,26 @@ class Group
     private $id;
 
     /**
+     * @var FileStorage
+     */
+    private $storage;
+
+    /**
      * Group constructor.
      *
      * @param int $id
      */
     public function __construct($id)
     {
-        $this->pathname = 'cache/phpunit-split-'.$id.'.php';
-
-        if (file_exists($this->pathname)) {
-            $storage = include($this->pathname);
-            $this->executionTimes = $storage['executionTimes'];
-            $this->estimatedTime = $storage['estimatedTime'];
-        }
         $this->id = $id;
+        $this->storage = new FileStorage('cache/phpunit-split-'.$this->id.'.php');
+
+        $model = $this->storage->get();
+        if (!empty($model)) {
+            $this->executionTimes = $model['executionTimes'];
+            $this->estimatedTime = $model['estimatedTime'];
+        }
+
     }
 
     /**
@@ -101,9 +104,7 @@ class Group
     public function delete()
     {
         $this->executionTimes = [];
-        if (file_exists($this->pathname)) {
-            unlink($this->pathname);
-        }
+        $this->storage->delete();
     }
 
     /**
@@ -127,14 +128,12 @@ class Group
      */
     private function saveInFile()
     {
-        $storage = [
+        $model = [
             'executionTimes' => $this->executionTimes,
             'estimatedTime' => $this->estimatedTime,
         ];
 
-        file_put_contents($this->pathname, '<?php return '.var_export($storage, true).';');
-        //When docker run the command
-        @chmod($this->pathname, 0777);
+        $this->storage->save($model);
 
         return $this;
     }

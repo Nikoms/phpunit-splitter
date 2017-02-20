@@ -2,6 +2,8 @@
 
 namespace Nikoms\PhpUnitSplitter\Lock;
 
+use Nikoms\PhpUnitSplitter\Storage\FileStorage;
+
 /**
  * Class LockMode
  */
@@ -13,9 +15,9 @@ class JobLocker
     private $totalGroups;
 
     /**
-     * @var string
+     * @var FileStorage
      */
-    private $lockFilePathname;
+    private $storage;
 
     /**
      * LockMode constructor.
@@ -26,7 +28,7 @@ class JobLocker
     public function __construct($totalGroups, $jobName)
     {
         $this->totalGroups = $totalGroups;
-        $this->lockFilePathname = sprintf('cache/.%s.php', $jobName);
+        $this->storage = new FileStorage(sprintf('cache/.%s.php', $jobName));
     }
 
     /**
@@ -34,7 +36,7 @@ class JobLocker
      */
     public function isFirst()
     {
-        return !file_exists($this->lockFilePathname);
+        return empty($this->storage->get());
     }
 
     /**
@@ -44,7 +46,7 @@ class JobLocker
      */
     public function groupDone($groupId)
     {
-        $executedGroups = $this->isFirst() ? [] : include($this->lockFilePathname);
+        $executedGroups = $this->storage->get();
         $executedGroups[$groupId] = true;
         $this->updateFile($executedGroups);
 
@@ -62,10 +64,7 @@ class JobLocker
      */
     private function updateFile(array $executedGroups)
     {
-        file_put_contents(
-            $this->lockFilePathname,
-            '<?php return '.var_export($executedGroups, true).';'
-        );
+        $this->storage->save($executedGroups);
 
         return $this;
     }
@@ -75,7 +74,7 @@ class JobLocker
      */
     private function allDone()
     {
-        unlink($this->lockFilePathname);
+        $this->storage->delete();
 
         return $this;
     }

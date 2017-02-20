@@ -2,6 +2,8 @@
 
 namespace Nikoms\PhpUnitSplitter;
 
+use Nikoms\PhpUnitSplitter\Storage\FileStorage;
+
 /**
  * Class Stats
  */
@@ -15,13 +17,17 @@ class Stats
     private $stats;
 
     /**
+     * @var FileStorage
+     */
+    private $storage;
+
+    /**
      * StatsStorage constructor.
      */
     public function __construct()
     {
-        $this->stats = file_exists(self::CACHE_STATS_PATHNAME)
-            ? include(self::CACHE_STATS_PATHNAME)
-            : [];
+        $this->storage = new FileStorage(self::CACHE_STATS_PATHNAME);
+        $this->stats = $this->storage->get();
     }
 
     /**
@@ -86,8 +92,6 @@ class Stats
      */
     public function save()
     {
-        file_put_contents(self::CACHE_STATS_PATHNAME, '<?php return '.var_export($this->stats, true).';');
-        //When docker run the command
-        @chmod(self::CACHE_STATS_PATHNAME, 0777);
+        $this->storage->save($this->stats);
     }
 }
