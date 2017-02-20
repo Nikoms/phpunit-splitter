@@ -2,10 +2,9 @@
 
 namespace Nikoms\PhpUnitSplitter\Job;
 
-use Nikoms\PhpUnitSplitter\Storage\GroupExecutions;
 use Nikoms\PhpUnitSplitter\Lock\JobLocker;
+use Nikoms\PhpUnitSplitter\Storage\GroupExecutions;
 use Nikoms\PhpUnitSplitter\Storage\StatsStorage;
-use Nikoms\PhpUnitSplitter\Splitter;
 use Symfony\Component\Filesystem\LockHandler;
 
 /**
@@ -14,28 +13,43 @@ use Symfony\Component\Filesystem\LockHandler;
 class CollectJob
 {
     /**
-     *
+     * @var int
      */
-    public function recalculateAverage()
+    private $totalGroups;
+
+    /**
+     * CollectJob constructor.
+     *
+     * @param int $totalGroups
+     */
+    public function __construct($totalGroups)
+    {
+        $this->totalGroups = $totalGroups;
+    }
+
+    /**
+     * @param int $groupId
+     */
+    public function recalculateAverage($groupId)
     {
         $lockHandler = new LockHandler('collect', 'cache');
-        $lockMode = new JobLocker(Splitter::getTotalGroups(), 'collect');
+        $lockMode = new JobLocker($this->totalGroups, 'collect');
 
         //Only one can update the stats at a time
         if ($lockHandler->lock(true)) {
-            $this->storeCurrentGroupExecutionTimes();
-            $lockMode->groupDone(Splitter::getCurrentGroup());
+            $this->storeGroupExecutionTimes($groupId);
+            $lockMode->groupDone($groupId);
             $lockHandler->release();
         }
     }
 
     /**
-     *
+     * @param int $groupId
      */
-    private function storeCurrentGroupExecutionTimes()
+    private function storeGroupExecutionTimes($groupId)
     {
         $statsStorage = new StatsStorage();
-        $groupExecutions = new GroupExecutions(Splitter::getCurrentGroup());
+        $groupExecutions = new GroupExecutions($groupId);
 
         $times = $groupExecutions->getExecutionsTime();
         foreach ($times as $id => $executionTime) {

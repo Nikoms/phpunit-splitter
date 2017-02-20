@@ -2,10 +2,10 @@
 
 namespace Nikoms\PhpUnitSplitter\Job;
 
-use Nikoms\PhpUnitSplitter\Model\Groups;
 use Nikoms\PhpUnitSplitter\Lock\JobLocker;
-use Nikoms\PhpUnitSplitter\Storage\StatsStorage;
+use Nikoms\PhpUnitSplitter\Model\Groups;
 use Nikoms\PhpUnitSplitter\Splitter;
+use Nikoms\PhpUnitSplitter\Storage\StatsStorage;
 use PHPUnit_Framework_TestSuite;
 use Symfony\Component\Filesystem\LockHandler;
 
@@ -14,22 +14,37 @@ use Symfony\Component\Filesystem\LockHandler;
  */
 class SplitJob
 {
+    /**
+     * @var int
+     */
+    private $totalGroups;
+
+    /**
+     * CollectJob constructor.
+     *
+     * @param int $totalGroups
+     */
+    public function __construct($totalGroups)
+    {
+        $this->totalGroups = $totalGroups;
+    }
 
     /**
      * @param PHPUnit_Framework_TestSuite $suite
+     * @param int                         $currentGroupId
      */
-    public function splitSuite(\PHPUnit_Framework_TestSuite $suite)
+    public function splitSuite(\PHPUnit_Framework_TestSuite $suite, $currentGroupId)
     {
         //The first will split tests for others!
         $lockHandler = new LockHandler('split', 'cache');
-        $lockMode = new JobLocker(Splitter::getTotalGroups(), 'split');
+        $lockMode = new JobLocker($this->totalGroups, 'split');
 
         //Only the first will create groups, others will wait for it :)
         if ($lockHandler->lock(true)) {
             $isFirst = $lockMode->isFirst();
             if ($isFirst) {
                 Splitter::dispatch(Splitter::BEFORE_SPLIT);
-                $groups = (new Groups(Splitter::getTotalGroups(), new StatsStorage()))->reset();
+                $groups = (new Groups($this->totalGroups, new StatsStorage()))->reset();
 
                 foreach ($this->getTestCases($suite) as $testCase) {
                     $groups->addInBestGroup($testCase);
@@ -38,9 +53,9 @@ class SplitJob
                 Splitter::dispatch(Splitter::AFTER_SPLIT);
                 $this->displayGroups($groups);
             } else {
-                echo sprintf('Running group "%s"', Splitter::getCurrentGroup()).PHP_EOL.PHP_EOL;
+                echo sprintf('Running group "%s"', $currentGroupId).PHP_EOL.PHP_EOL;
             }
-            $lockMode->groupDone(Splitter::getCurrentGroup());
+            $lockMode->groupDone($currentGroupId);
             $lockHandler->release();
         }
     }

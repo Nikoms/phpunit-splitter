@@ -3,8 +3,8 @@
 namespace Nikoms\PhpUnitSplitter\Job;
 
 use Nikoms\PhpUnitSplitter\Model\Group;
-use Nikoms\PhpUnitSplitter\Storage\GroupExecutions;
 use Nikoms\PhpUnitSplitter\Splitter;
+use Nikoms\PhpUnitSplitter\Storage\GroupExecutions;
 use Nikoms\PhpUnitSplitter\TestCaseId;
 use PHPUnit_Framework_Test;
 use PHPUnit_Framework_TestSuite;
@@ -20,12 +20,13 @@ class RunJob
     private $currentGroup;
 
     /**
+     * @param int                         $groupId
      * @param PHPUnit_Framework_TestSuite $suite
      */
-    public function initTestsToRun(\PHPUnit_Framework_TestSuite $suite)
+    public function filterTestsOfGroup(\PHPUnit_Framework_TestSuite $suite, $groupId)
     {
         Splitter::dispatch(Splitter::BEFORE_RUN);
-        $this->initCurrentGroup();
+        $this->initCurrentGroup($groupId);
         $testsOfCurrentGroup = array_filter(
             $this->getTestCases($suite),
             function (\PHPUnit_Framework_TestCase $testCase) {
@@ -39,11 +40,11 @@ class RunJob
     }
 
     /**
-     *
+     * @param int $groupId
      */
-    private function initCurrentGroup()
+    private function initCurrentGroup($groupId)
     {
-        $this->currentGroup = new Group(new GroupExecutions(Splitter::getCurrentGroup()), 0);
+        $this->currentGroup = new Group(new GroupExecutions($groupId), 0);
     }
 
     /**

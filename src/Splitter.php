@@ -22,7 +22,7 @@ class Splitter
     /**
      * @var int
      */
-    private static $currentGroup = 0;
+    private static $currentGroupId = 0;
 
     /**
      * @var callable[][]
@@ -43,11 +43,11 @@ class Splitter
     /**
      * @return int
      */
-    public static function getCurrentGroup()
+    public static function getCurrentGroupId()
     {
         self::init();
 
-        return self::$currentGroup;
+        return self::$currentGroupId;
     }
 
     /**
@@ -72,7 +72,7 @@ class Splitter
                 }
 
                 if ($key === 'split-current') {
-                    self::$currentGroup = (int)$value;
+                    self::$currentGroupId = (int)$value;
                     continue;
                 }
             }

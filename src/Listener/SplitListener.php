@@ -4,6 +4,7 @@ namespace Nikoms\PhpUnitSplitter\Listener;
 use Nikoms\PhpUnitSplitter\Job\CollectJob;
 use Nikoms\PhpUnitSplitter\Job\RunJob;
 use Nikoms\PhpUnitSplitter\Job\SplitJob;
+use Nikoms\PhpUnitSplitter\Splitter;
 use PHPUnit_Framework_Test;
 use PHPUnit_Framework_TestSuite;
 
@@ -32,9 +33,9 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
      */
     public function __construct()
     {
-        $this->splitJob = new SplitJob();
+        $this->splitJob = new SplitJob(Splitter::getTotalGroups());
         $this->runJob = new RunJob();
-        $this->collectJob = new CollectJob();
+        $this->collectJob = new CollectJob(Splitter::getTotalGroups());
     }
 
     /**
@@ -42,8 +43,8 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
      */
     public function startTestSuite(PHPUnit_Framework_TestSuite $suite)
     {
-        $this->splitJob->splitSuite($suite);
-        $this->runJob->initTestsToRun($suite);
+        $this->splitJob->splitSuite($suite, Splitter::getCurrentGroupId());
+        $this->runJob->filterTestsOfGroup($suite, Splitter::getCurrentGroupId());
     }
 
     /**
@@ -61,6 +62,6 @@ class SplitListener extends \PHPUnit_Framework_BaseTestListener
     public function endTestSuite(PHPUnit_Framework_TestSuite $suite)
     {
         $this->runJob->flushExecutionTimes();
-        $this->collectJob->recalculateAverage();
+        $this->collectJob->recalculateAverage(Splitter::getCurrentGroupId());
     }
 }
