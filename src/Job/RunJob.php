@@ -44,7 +44,7 @@ class RunJob
      */
     private function initCurrentGroup($groupId)
     {
-        $this->currentGroup = new Group(new GroupExecutions($groupId), 0);
+        $this->currentGroup = new Group($groupId);
     }
 
     /**

@@ -30,7 +30,7 @@ class Groups
     public function __construct($numberOfGroups, StatsStorage $statsStorage)
     {
         for ($i = 0; $i < $numberOfGroups; $i++) {
-            $this->groups[] = new Group(new GroupExecutions($i), 0);
+            $this->groups[] = new Group($i);
         }
 
         $this->statsStorage = $statsStorage;
@@ -65,7 +65,7 @@ class Groups
     public function reset()
     {
         foreach ($this->groups as $group) {
-            $group->reset();
+            $group->delete();
         }
 
         return $this;

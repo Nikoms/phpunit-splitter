@@ -3,6 +3,7 @@
 namespace Nikoms\PhpUnitSplitter\Job;
 
 use Nikoms\PhpUnitSplitter\Lock\JobLocker;
+use Nikoms\PhpUnitSplitter\Model\Group;
 use Nikoms\PhpUnitSplitter\Model\Groups;
 use Nikoms\PhpUnitSplitter\Splitter;
 use Nikoms\PhpUnitSplitter\Storage\StatsStorage;
@@ -53,7 +54,13 @@ class SplitJob
                 Splitter::dispatch(Splitter::AFTER_SPLIT);
                 $this->displayGroups($groups);
             } else {
-                echo sprintf('Running group "%s"', $currentGroupId).PHP_EOL.PHP_EOL;
+                $group = new Group($currentGroupId);
+                echo sprintf(
+                    'Running group "%s" : Estimated time : %s sec.',
+                    $currentGroupId,
+                    $group->getEstimatedTimeInSec()
+                );
+                echo PHP_EOL.PHP_EOL;
             }
             $lockMode->groupDone($currentGroupId);
             $lockHandler->release();

@@ -2,8 +2,6 @@
 
 namespace Nikoms\PhpUnitSplitter\Model;
 
-use Nikoms\PhpUnitSplitter\Storage\GroupExecutions;
-
 /**
  * Class Group
  */
@@ -12,25 +10,34 @@ class Group
     const TIME_PRECISION = 1000000;
 
     /**
-     * @var GroupExecutions
+     * @var string
      */
-    private $groupExecutions;
+    private $pathname;
+
+    /**
+     * @var array
+     */
+    private $executionTimes = [];
 
     /**
      * @var int
      */
-    private $estimatedTime;
+    private $estimatedTime = 0;
 
     /**
      * Group constructor.
      *
-     * @param GroupExecutions $groupExecutions
-     * @param int             $estimatedTime
+     * @param int $groupId
      */
-    public function __construct(GroupExecutions $groupExecutions, $estimatedTime)
+    public function __construct($groupId)
     {
-        $this->groupExecutions = $groupExecutions;
-        $this->estimatedTime = $estimatedTime;
+        $this->pathname = 'cache/phpunit-split-'.$groupId.'.php';
+
+        if (file_exists($this->pathname)) {
+            $storage = include($this->pathname);
+            $this->executionTimes = $storage['executionTimes'];
+            $this->estimatedTime = $storage['estimatedTime'];
+        }
     }
 
     /**
@@ -38,7 +45,7 @@ class Group
      */
     public function count()
     {
-        return $this->groupExecutions->count();
+        return count($this->executionTimes);
     }
 
     /**
@@ -49,7 +56,7 @@ class Group
      */
     public function set($testCaseId, $time)
     {
-        $this->groupExecutions->set($testCaseId, round($time * self::TIME_PRECISION));
+        $this->executionTimes[$testCaseId] = round($time * self::TIME_PRECISION);
 
         return $this;
     }
@@ -61,7 +68,7 @@ class Group
      */
     public function has($testCaseId)
     {
-        return $this->groupExecutions->has($testCaseId);
+        return isset($this->executionTimes[$testCaseId]);
     }
 
     /**
@@ -70,16 +77,27 @@ class Group
      */
     public function addToRun($testCaseId, $estimatedTime)
     {
-        $this->groupExecutions->set($testCaseId, 0);
+        $this->executionTimes[$testCaseId] = 0;
         $this->estimatedTime += $estimatedTime;
     }
 
     /**
      *
      */
-    public function reset()
+    public function delete()
     {
-        $this->groupExecutions->reset();
+        $this->executionTimes = [];
+        if (file_exists($this->pathname)) {
+            unlink($this->pathname);
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public function getExecutionsTimes()
+    {
+        return $this->executionTimes;
     }
 
     /**
@@ -87,7 +105,24 @@ class Group
      */
     public function save()
     {
-        $this->groupExecutions->save();
+        $this->saveInFile();
+    }
+
+    /**
+     * @return $this
+     */
+    private function saveInFile()
+    {
+        $storage = [
+            'executionTimes' => $this->executionTimes,
+            'estimatedTime' => $this->estimatedTime,
+        ];
+
+        file_put_contents($this->pathname, '<?php return '.var_export($storage, true).';');
+        //When docker run the command
+        @chmod($this->pathname, 0777);
+
+        return $this;
     }
 
     /**
